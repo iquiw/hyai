@@ -7,7 +7,14 @@
     (indent-line-to (car (or (cdr nexts) indents)))))
 
 (defun hyai-indent-candidates ()
-  '(4))
+  (save-excursion
+    (skip-syntax-backward " >")
+    (cl-case (char-syntax (char-before))
+      (?w (looking-back "\\<[[:word:]]+")
+          (if (string= (match-string-no-properties 0) "do")
+              (list (+ 4 (hyai-current-offset)))
+            '(4 0)))
+      (t '(4 0)))))
 
 (defun hyai-current-offset ()
   (beginning-of-line-text 1)
