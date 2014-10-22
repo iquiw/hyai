@@ -6,7 +6,11 @@
   (let* ((offset (hyai-current-offset))
          (indents (hyai-indent-candidates))
          (nexts (member offset indents)))
-    (indent-line-to (car (or (cdr nexts) indents)))))
+    (when (and indents
+               (or (eq this-command 'indent-for-tab-command)
+                   (null nexts)
+                   (not (= 0 (car nexts) offset))))
+      (indent-line-to (car (or (cdr nexts) indents))))))
 
 (defun hyai-indent-candidates ()
   (save-excursion
