@@ -1,3 +1,5 @@
+(require 'cl-lib)
+
 (defconst hyai-indent-offset 4)
 
 (defun hyai-indent-line ()
@@ -9,16 +11,22 @@
 (defun hyai-indent-candidates ()
   (save-excursion
     (skip-syntax-backward " >")
-    (cl-case (char-syntax (char-before))
-      (?w (looking-back "\\<[[:word:]]+")
-          (if (string= (match-string-no-properties 0) "do")
-              (list (+ 4 (hyai-current-offset)))
-            '(4 0)))
-      (t '(4 0)))))
+    (if (bobp)
+        '(0)
+      (cl-case (char-syntax (char-before))
+        (?w (pcase (hyai-grab-word)
+              (`"do" (list (+ 4 (hyai-current-offset))))
+              (`"where" '(4))
+              (_ '(0 4))))
+        (t '(4 0))))))
 
 (defun hyai-current-offset ()
-  (beginning-of-line-text 1)
+  (beginning-of-line-text)
   (current-column))
+
+(defun hyai-grab-word ()
+  (when (looking-back "\\<[[:word:]]+")
+    (match-string-no-properties 0)))
 
 ;;;###autoload
 (define-minor-mode hyai-mode

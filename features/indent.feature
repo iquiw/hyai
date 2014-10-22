@@ -17,9 +17,20 @@ Feature: hyai indent
     When I insert:
     """
     foo = bar
-      when
+      where
         bar = do
     
     """
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(8)"
+
+  Scenario: After where
+    Given the buffer is empty
+    When I insert:
+    """
+    foo = bar
+      where
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
