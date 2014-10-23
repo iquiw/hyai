@@ -1,6 +1,8 @@
 (When "^I call hyai-indent-candidates at the current point"
   (lambda ()
-    (setq hyai-test-candidates-output (hyai-indent-candidates))))
+    (let ((oh (hyai-current-offset-head)))
+      (setq hyai-test-candidates-output
+            (hyai-indent-candidates (car oh) (cdr oh))))))
 
 (Then "^indent candidates are \"\\(.*\\)\"$"
   (lambda (expected)
