@@ -2,7 +2,7 @@
   (lambda ()
     (let ((oh (hyai-current-offset-head)))
       (setq hyai-test-candidates-output
-            (hyai-indent-candidates (car oh) (cdr oh))))))
+            (hyai-indent-candidates (cdr oh))))))
 
 (Then "^indent candidates are \"\\(.*\\)\"$"
   (lambda (expected)

@@ -43,3 +43,14 @@ Feature: hyai indent
     """
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4)"
+
+  Scenario: Before where
+    Given the buffer is empty
+    When I insert:
+    """
+    foo = bar
+    where
+    """
+    And I place the cursor before "where"
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(2)"
