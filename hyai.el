@@ -1,18 +1,16 @@
 (require 'cl-lib)
 
-(defconst hyai-indent-offset 4)
+(defconst hyai-basic-offset 4)
 
 (defun hyai-indent-line ()
   (let* ((oh (hyai-current-offset-head))
          (offset (car oh))
          (head (cdr oh))
          (indents (hyai-indent-candidates head))
-         (nexts (member offset indents)))
-    (when (and indents
-               (or (eq this-command 'indent-for-tab-command)
-                   (null nexts)
-                   (not (= 0 (car nexts) offset))))
-      (indent-line-to (car (or (cdr nexts) indents)))
+         (nexts (when (eq this-command 'indent-for-tab-command)
+                  (cdr (member offset indents)))))
+    (when indents
+      (indent-line-to (car (or nexts indents)))
       (unless (string-empty-p head)
         (end-of-line)))))
 
@@ -37,8 +35,8 @@
              (pcase (hyai-current-offset-head)
                (`(,offset . "module") (list offset))
                (_ '(4))))
-            (_ '(0 4))))
-      (t '(4 0)))))
+            (_ (hyai-generate-offsets (car (hyai-current-offset-head))))))
+      (t (hyai-generate-offsets (car (hyai-current-offset-head)))))))
 
 (defun hyai-current-offset-head ()
   (beginning-of-line-text)
@@ -55,6 +53,15 @@
 (defun hyai-grab-word ()
   (when (looking-back "\\<[[:word:]]+")
     (match-string-no-properties 0)))
+
+(defun hyai-generate-offsets (current)
+  (let ((i (- current hyai-basic-offset))
+        result)
+    (while (>= i 0)
+      (push i result)
+      (setq i (- i hyai-basic-offset)))
+    (push (+ current hyai-basic-offset) result)
+    (push current result)))
 
 ;;;###autoload
 (define-minor-mode hyai-mode
