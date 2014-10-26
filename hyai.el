@@ -49,10 +49,12 @@
             (`"do" (list (+ 4 (car (hyai-current-offset-head)))))
             (`"where"
              (goto-char (match-beginning 0))
-             (let ((coffset (current-column)))
+             (if (save-excursion
+                   (= (point) (progn (beginning-of-line-text) (point))))
+                 (list (+ (current-column) hyai-where-offset))
                (pcase (hyai-previous-offset-head)
                  (`(,poffset . "module") (list poffset))
-                 (_ (list (+ coffset hyai-where-offset))))))
+                 (`(,poffset . ,_) (list (+ poffset hyai-basic-offset))))))
             (_ (hyai-generate-offsets (car (hyai-current-offset-head))))))
       (t (hyai-generate-offsets (car (hyai-current-offset-head)))))))
 

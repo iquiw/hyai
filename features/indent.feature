@@ -50,6 +50,15 @@ Feature: hyai indent
     Given the buffer is empty
     When I insert:
     """
+    class Foo a where
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
+    Given the buffer is empty
+    When I insert:
+    """
     foo = bar
       where
     
