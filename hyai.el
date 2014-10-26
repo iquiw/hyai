@@ -34,7 +34,7 @@
 
 (defun hyai-indent-candidates-from-current (head)
   (pcase head
-    (`"where" (let ((offset (hyai-previous-offset)))
+    (`"where" (let ((offset (car (hyai-previous-offset-head))))
                 (list (+ offset (if (= offset 0)
                                     hyai-where-offset
                                   hyai-basic-offset)))))
@@ -48,9 +48,11 @@
       (?w (pcase (hyai-grab-word)
             (`"do" (list (+ 4 (car (hyai-current-offset-head)))))
             (`"where"
-             (pcase (hyai-current-offset-head)
-               (`(,offset . "module") (list offset))
-               (`(,offset . ,_) (list (+ offset hyai-where-offset)))))
+             (goto-char (match-beginning 0))
+             (let ((coffset (current-column)))
+               (pcase (hyai-previous-offset-head)
+                 (`(,poffset . "module") (list poffset))
+                 (_ (list (+ coffset hyai-where-offset))))))
             (_ (hyai-generate-offsets (car (hyai-current-offset-head))))))
       (t (hyai-generate-offsets (car (hyai-current-offset-head)))))))
 
@@ -66,10 +68,10 @@
                   (t ""))))
       (cons (current-column) head))))
 
-(defun hyai-previous-offset ()
-  (if (re-search-backward "\\(^[^[:space:]#]+\\|where\\)")
-      (current-column)
-    0))
+(defun hyai-previous-offset-head ()
+  (if (re-search-backward "\\(^[^[:space:]#]+\\|where\\)" nil t)
+      (cons (current-column) (match-string-no-properties 1))
+    '(0 . "")))
 
 (defun hyai-grab-word ()
   (when (looking-back "\\<[[:word:]]+")

@@ -37,6 +37,19 @@ Feature: hyai indent
     Given the buffer is empty
     When I insert:
     """
+    module Foo
+        ( foo
+        , bar
+        , baz
+        ) where
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0)"
+
+    Given the buffer is empty
+    When I insert:
+    """
     foo = bar
       where
     
