@@ -1,3 +1,15 @@
+;;; hyai.el --- Haskell Yet Another Indentation. -*- lexical-binding: t -*-
+
+;; Copyright (C) 2014 by Iku Iwasa
+
+;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
+;; URL:       https://github.com/iquiw/hyai
+;; Version:   0.0.0
+;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
+
+;;; Commentary:
+;;; Code:
+
 (require 'cl-lib)
 
 (defconst hyai-basic-offset 4)
@@ -11,7 +23,7 @@
                   (cdr (member offset indents)))))
     (when indents
       (indent-line-to (car (or nexts indents)))
-      (unless (string-empty-p head)
+      (unless (string= head "")
         (end-of-line)))))
 
 (defun hyai-indent-candidates (head)
@@ -65,7 +77,7 @@
 
 ;;;###autoload
 (define-minor-mode hyai-mode
-  "Haskell yet another indentation minor mode."
+  "Haskell Yet Another Indentation minor mode."
   :lighter " HYAI"
   (kill-local-variable 'indent-line-function)
   (when hyai-mode
@@ -80,3 +92,4 @@
   (hyai-mode 0))
 
 (provide 'hyai)
+;;; hyai.el ends here
