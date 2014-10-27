@@ -34,10 +34,11 @@
 
 (defun hyai-indent-candidates-from-current (head)
   (pcase head
-    (`"where" (let ((offset (car (hyai-previous-offset-head))))
-                (list (+ offset (if (= offset 0)
-                                    hyai-where-offset
-                                  hyai-basic-offset)))))
+    (`"where" (pcase (hyai-previous-offsets-keyword "where")
+                (`(,offsets . "where")
+                 (list (+ (car offsets) hyai-basic-offset)))
+                (`(,offsets . ,_)
+                 (list (+ (car offsets) hyai-where-offset)))))
     (_ nil)))
 
 (defun hyai-indent-candidates-from-previous ()
@@ -52,14 +53,22 @@
              (if (save-excursion
                    (= (point) (progn (beginning-of-line-text) (point))))
                  (list (+ (current-column) hyai-where-offset))
-               (pcase (hyai-previous-offset-head)
-                 (`(,poffset . "module") (list poffset))
-                 (`(,poffset . ,_) (list (+ poffset hyai-basic-offset))))))
+               (pcase (hyai-previous-offsets-keyword "where")
+                 (`(,offsets . "module") offsets)
+                 (`(,offsets . ,_)
+                  (list (+ (car offsets) hyai-basic-offset))))))
+            (`"of"
+             (goto-char (match-beginning 0))
+             (pcase (hyai-previous-offsets-keyword "case")
+               (`(,offsets . "case")
+                (mapcar (lambda (x) (+ x hyai-basic-offset)) offsets))
+               (_ (hyai-generate-offsets (car (hyai-current-offset-head))))))
             (_ (hyai-generate-offsets (car (hyai-current-offset-head))))))
       (t (hyai-generate-offsets (car (hyai-current-offset-head)))))))
 
 (defun hyai-current-offset-head ()
-  (beginning-of-line-text)
+  (beginning-of-line)
+  (skip-syntax-forward " ")
   (if (eobp)
      '(0 . "")
     (let ((head (cl-case (char-syntax (char-after))
@@ -70,10 +79,18 @@
                   (t ""))))
       (cons (current-column) head))))
 
-(defun hyai-previous-offset-head ()
-  (if (re-search-backward "\\(^[^[:space:]#]+\\|where\\)" nil t)
-      (cons (current-column) (match-string-no-properties 1))
-    '(0 . "")))
+(defun hyai-previous-offsets-keyword (keyword)
+  (let ((regexp (concat "\\(^[^[:space:]#]+\\|\\_<=\\_>\\|\\<"
+                        keyword "\\>\\)")))
+    (if (re-search-backward regexp nil t)
+        (let ((off1 (progn (beginning-of-line)
+                           (skip-syntax-forward " ")
+                           (current-column)))
+              (off2 (progn (goto-char (match-beginning 1))
+                           (current-column))))
+          (cons (cons off1 (when (/= off1 off2) (list off2)))
+                (match-string-no-properties 1)))
+      '((0) . ""))))
 
 (defun hyai-grab-word ()
   (when (looking-back "\\<[[:word:]]+")
