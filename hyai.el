@@ -23,9 +23,7 @@
          (nexts (when (eq this-command 'indent-for-tab-command)
                   (cdr (member offset indents)))))
     (when indents
-      (indent-line-to (car (or nexts indents)))
-      (unless (string= head "")
-        (end-of-line)))))
+      (indent-line-to (car (or nexts indents))))))
 
 (defun hyai-indent-candidates (head)
   (save-excursion
