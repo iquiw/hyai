@@ -84,16 +84,10 @@
                   (t ""))))
       (cons (current-column) head))))
 
-(defun hyai-current-offset ()
-  (beginning-of-line)
-  (skip-syntax-forward " ")
-  (current-column))
-
 (defun hyai-previous-offsets-keyword (keyword)
-  (let ((regexp (concat "\\(^[^[:space:]#]+\\|\\_<=\\_>\\|\\<"
-                        keyword "\\>\\)")))
+  (let ((regexp (concat "\\(^[^[:space:]#]+\\|\\<" keyword "\\>\\)")))
     (if (re-search-backward regexp nil t)
-        (let ((off1 (hyai-current-offset))
+        (let ((off1 (current-indentation))
               (off2 (progn (goto-char (match-beginning 1))
                            (current-column))))
           (cons (cons off1 (when (/= off1 off2) (list off2)))
@@ -102,7 +96,7 @@
 
 (defun hyai-previous-offset ()
   (skip-syntax-backward " >")
-  (hyai-current-offset))
+  (current-indentation))
 
 (defun hyai-grab-word ()
   (when (looking-back "\\<[[:word:]]+")
