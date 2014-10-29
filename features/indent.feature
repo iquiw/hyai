@@ -121,7 +121,7 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4 13)"
 
-  Scenario: After parenthesis
+  Scenario: After open parenthesis
     Given the buffer is empty
     When I insert:
     """
@@ -132,7 +132,7 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(6)"
 
-  Scenario: Before parenthesis
+  Scenario: Before open parenthesis
     Given the buffer is empty
     When I insert:
     """
@@ -142,6 +142,19 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4)"
 
+  Scenario: Before closed parenthesis
+    Given the buffer is empty
+    When I insert:
+    """
+    module Foo
+        (
+          foo
+        , bar
+        , baz
+    )
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
 
   Scenario: After normal line
     Given the buffer is empty

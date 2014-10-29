@@ -39,6 +39,9 @@
                  (list (+ (car offsets) hyai-where-offset)))))
     ((or `"(" `"{" `"[")
      (list (+ (hyai-previous-offset) hyai-basic-offset)))
+    ((or `")" `"}" `"]")
+     (and (hyai-search-backward-open-bracket)
+          (list (max 0 (- (current-column) 1)))))
     (_ nil)))
 
 (defun hyai-indent-candidates-from-previous ()
@@ -79,6 +82,7 @@
                   (?_ (looking-at "\\s_*")
                       (match-string-no-properties 0))
                   (?\( (string (char-after)))
+                  (?\) (string (char-after)))
                   (t ""))))
       (cons (current-column) head))))
 
@@ -99,6 +103,15 @@
 (defun hyai-grab-word ()
   (when (looking-back "\\<[[:word:]]+")
     (match-string-no-properties 0)))
+
+(defun hyai-search-backward-open-bracket ()
+  (catch 'result
+    (while (< (skip-syntax-backward "^()") 0)
+      (let ((c (char-before)))
+        (cond
+         ((not c) (throw 'result nil))
+         ((= (char-syntax c) ?\)) (ignore-errors (backward-sexp)))
+         (t (throw 'result t)))))))
 
 (defun hyai-generate-offsets (current)
   (let ((i (- current hyai-basic-offset))
