@@ -14,9 +14,13 @@
 (require 'hyai)
 (require 'espuds)
 (require 'ert)
+(require 'haskell-mode)
 
 (Setup
- (defvar hyai-test-candidates-output))
+ (defvar hyai-test-candidates-output)
+ (switch-to-buffer
+  (get-buffer-create "*hyai*"))
+ (haskell-mode))
 
 (Before
  (setq hyai-test-candidates-output nil))
