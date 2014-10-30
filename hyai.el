@@ -40,8 +40,9 @@
     ((or `"(" `"{" `"[")
      (list (+ (hyai-previous-offset) hyai-basic-offset)))
     ((or `")" `"}" `"]")
-     (and (hyai-search-backward-open-bracket)
-          (list (max 0 (- (current-column) 1)))))
+     (and (hyai-search-backward-open-bracket) (list (current-column))))
+    (`","
+     (and (hyai-search-backward-open-bracket) (list (current-column))))
     (_ nil)))
 
 (defun hyai-indent-candidates-from-previous ()
@@ -83,6 +84,7 @@
                       (match-string-no-properties 0))
                   (?\( (string (char-after)))
                   (?\) (string (char-after)))
+                  (?. (string (char-after)))
                   (t ""))))
       (cons (current-column) head))))
 
@@ -111,7 +113,8 @@
         (cond
          ((not c) (throw 'result nil))
          ((= (char-syntax c) ?\)) (ignore-errors (backward-sexp)))
-         (t (throw 'result t)))))))
+         (t (goto-char (- (point) 1))
+            (throw 'result t)))))))
 
 (defun hyai-generate-offsets (current)
   (let ((i (- current hyai-basic-offset))

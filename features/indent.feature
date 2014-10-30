@@ -156,6 +156,18 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4)"
 
+  Scenario: Before colon
+    Given the buffer is empty
+    When I insert:
+    """
+    module Foo
+        (
+          foo
+    ,
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
   Scenario: After normal line
     Given the buffer is empty
     When I insert:
