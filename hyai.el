@@ -40,9 +40,9 @@
     ((or `"(" `"{" `"[")
      (list (+ (hyai-previous-offset) hyai-basic-offset)))
     ((or `")" `"}" `"]")
-     (and (hyai-search-backward-open-bracket) (list (current-column))))
+     (and (hyai-search-backward-open-bracket t) (list (current-column))))
     (`","
-     (and (hyai-search-backward-open-bracket) (list (current-column))))
+     (and (hyai-search-backward-open-bracket t) (list (current-column))))
     (_ nil)))
 
 (defun hyai-indent-candidates-from-previous ()
@@ -69,7 +69,18 @@
                 (mapcar (lambda (x) (+ x hyai-basic-offset)) offsets))
                (_ (hyai-generate-offsets (car (hyai-current-offset-head))))))
             (_ (hyai-generate-offsets (car (hyai-current-offset-head))))))
+
+      (?. (let* ((off1 (hyai-previous-offset))
+                 (off2 (hyai-search-backward-open-bracket nil)))
+            (list (or (and off2
+                           (progn
+                             (forward-char)
+                             (skip-syntax-forward " ")
+                             (current-column)))
+                      off1))))
+
       (?\(  (list (+ (current-column) 1)))
+
       (t (hyai-generate-offsets (car (hyai-current-offset-head)))))))
 
 (defun hyai-current-offset-head ()
@@ -106,15 +117,17 @@
   (when (looking-back "\\<[[:word:]]+")
     (match-string-no-properties 0)))
 
-(defun hyai-search-backward-open-bracket ()
+(defun hyai-search-backward-open-bracket (across-lines)
   (catch 'result
-    (while (< (skip-syntax-backward "^()") 0)
+    (while (< (skip-syntax-backward (if across-lines "^()" "^()>")) 0)
       (let ((c (char-before)))
         (cond
          ((not c) (throw 'result nil))
-         ((= (char-syntax c) ?\)) (ignore-errors (backward-sexp)))
-         (t (goto-char (- (point) 1))
-            (throw 'result t)))))))
+         ((= (char-syntax c) ?\))
+          (condition-case nil (backward-sexp)
+            (error (throw 'result nil))))
+         (t (backward-char)
+            (throw 'result c)))))))
 
 (defun hyai-generate-offsets (current)
   (let ((i (- current hyai-basic-offset))

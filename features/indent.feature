@@ -156,6 +156,29 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    module Foo
+        (
+          foo
+        , (<^^>)
+        , bar
+    )
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
+  Scenario: After colon
+    Given the buffer is empty
+    When I insert:
+    """
+    import Data.Text (foo,
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(18)"
+
   Scenario: Before colon
     Given the buffer is empty
     When I insert:
@@ -167,6 +190,16 @@ Feature: hyai indent
     """
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    import Data.Text ( foo
+                     , bar
+    ,
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(17)"
 
   Scenario: After normal line
     Given the buffer is empty
