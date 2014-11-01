@@ -1,4 +1,4 @@
-;;; hyai.el --- Haskell Yet Another Indentation. -*- lexical-binding: t -*-
+;;; hyai.el --- Haskell Yet Another Indentation -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2014 by Iku Iwasa
 
@@ -37,6 +37,9 @@
                  (list (+ (car offsets) hyai-basic-offset)))
                 (`(,offsets . ,_)
                  (list (+ (car offsets) hyai-where-offset)))))
+    (`"then" (list (+ (car (last (car (hyai-previous-offsets-keyword "if"))))
+                      hyai-basic-offset)))
+    (`"else" (list (car (last (car (hyai-previous-offsets-keyword "then"))))))
     ((or `"(" `"{" `"[")
      (list (+ (hyai-previous-offset) hyai-basic-offset)))
     ((or `")" `"}" `"]")
