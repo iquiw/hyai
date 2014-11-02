@@ -224,6 +224,26 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(17)"
 
+  Scenario: Before ->
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar :: ByteString
+    ->
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(7)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar :: ByteString
+           -> (Char -> Char)
+    ->
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(7)"
+
   Scenario: After normal line
     Given the buffer is empty
     When I insert:

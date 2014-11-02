@@ -37,15 +37,21 @@
                  (list (+ (car offsets) hyai-basic-offset)))
                 (`(,offsets . ,_)
                  (list (+ (car offsets) hyai-where-offset)))))
+
     (`"then" (list (+ (car (last (car (hyai-previous-offsets-keyword "if"))))
                       hyai-basic-offset)))
-    (`"else" (list (car (last (car (hyai-previous-offsets-keyword "then"))))))
+    (`"else" (last (car (hyai-previous-offsets-keyword "then"))))
+
     ((or `"(" `"{" `"[")
      (list (+ (hyai-previous-offset) hyai-basic-offset)))
     ((or `")" `"}" `"]")
      (and (hyai-search-backward-open-bracket t) (list (current-column))))
+
     (`","
      (and (hyai-search-backward-open-bracket t) (list (current-column))))
+
+    (`"->" (last (car (hyai-previous-offsets-operator "::"))))
+
     (_ nil)))
 
 (defun hyai-indent-candidates-from-previous ()
@@ -103,14 +109,21 @@
       (cons (current-column) head))))
 
 (defun hyai-previous-offsets-keyword (keyword)
-  (let ((regexp (concat "\\(^[^[:space:]#]+\\|\\<" keyword "\\>\\)")))
-    (if (re-search-backward regexp nil t)
-        (let ((off1 (current-indentation))
-              (off2 (progn (goto-char (match-beginning 1))
-                           (current-column))))
-          (cons (cons off1 (when (/= off1 off2) (list off2)))
-                (match-string-no-properties 1)))
-      '((0) . ""))))
+  (hyai-previous-offsets-token
+   (concat "\\(^[^[:space:]#]+\\|\\<" keyword "\\>\\)")))
+
+(defun hyai-previous-offsets-operator (operator)
+  (hyai-previous-offsets-token
+   (concat "\\(^[^[:space:]#]+\\|\\_<" operator "\\_>\\)")))
+
+(defun hyai-previous-offsets-token (regexp)
+  (if (re-search-backward regexp nil t)
+      (let ((off1 (current-indentation))
+            (off2 (progn (goto-char (match-beginning 1))
+                         (current-column))))
+        (cons (cons off1 (when (/= off1 off2) (list off2)))
+              (match-string-no-properties 1)))
+    '((0) . "")))
 
 (defun hyai-previous-offset ()
   (skip-syntax-backward " >")
