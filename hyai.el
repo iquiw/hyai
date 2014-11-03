@@ -50,7 +50,10 @@
     (`","
      (and (hyai-search-backward-open-bracket t) (list (current-column))))
 
-    (`"->" (last (car (hyai-previous-offsets-operator "::"))))
+    (`"->" (let ((offset (hyai-search-previous-token 'symbol "::")))
+             (if (= offset 0)
+                 (list hyai-basic-offset)
+               (list offset))))
 
     (_ nil)))
 
@@ -63,7 +66,6 @@
             (`"do"
              (list (+ (car (hyai-current-offset-head)) hyai-basic-offset)))
             (`"where"
-             (goto-char (match-beginning 0))
              (if (save-excursion
                    (= (point) (progn (beginning-of-line-text) (point))))
                  (list (+ (current-column) hyai-where-offset))
@@ -72,7 +74,6 @@
                  (`(,offsets . ,_)
                   (list (+ (car offsets) hyai-basic-offset))))))
             (`"of"
-             (goto-char (match-beginning 0))
              (pcase (hyai-previous-offsets-keyword "case")
                (`(,offsets . "case")
                 (mapcar (lambda (x) (+ x hyai-basic-offset)) offsets))
@@ -97,24 +98,19 @@
   (skip-syntax-forward " ")
   (if (eobp)
      '(0 . "")
-    (let ((head (cl-case (char-syntax (char-after))
-                  (?w (looking-at "\\sw*")
-                      (match-string-no-properties 0))
-                  (?_ (looking-at "\\s_*")
-                      (match-string-no-properties 0))
-                  (?\( (string (char-after)))
-                  (?\) (string (char-after)))
-                  (?. (string (char-after)))
-                  (t ""))))
+    (let* ((c (char-after))
+           (head (cl-case (char-syntax c)
+                   (?w (save-excursion (hyai-grab-syntax-forward "w")))
+                   (?_ (save-excursion (hyai-grab-syntax-forward "_")))
+                   (?\( (string c))
+                   (?\) (string c))
+                   (?. (string c))
+                   (t ""))))
       (cons (current-column) head))))
 
 (defun hyai-previous-offsets-keyword (keyword)
   (hyai-previous-offsets-token
    (concat "\\(^[^[:space:]#]+\\|\\<" keyword "\\>\\)")))
-
-(defun hyai-previous-offsets-operator (operator)
-  (hyai-previous-offsets-token
-   (concat "\\(^[^[:space:]#]+\\|\\_<" operator "\\_>\\)")))
 
 (defun hyai-previous-offsets-token (regexp)
   (if (re-search-backward regexp nil t)
@@ -125,13 +121,46 @@
               (match-string-no-properties 1)))
     '((0) . "")))
 
+(defun hyai-search-previous-token (type val)
+  (skip-syntax-backward " >")
+  (catch 'result
+    (while (not (bobp))
+      (let ((syn (char-syntax (char-before))))
+        (cl-case syn
+          (?w (if (eq type 'word)
+                  (when (string= (hyai-grab-syntax-backward "w") val)
+                    (throw 'result (current-column)))
+                (skip-syntax-backward "w")))
+          (?_ (if (eq type 'symbol)
+                  (when (string= (hyai-grab-syntax-backward "_") val)
+                    (throw 'result (current-column))
+                (skip-syntax-backward "_"))))
+          (?> (if (/= (char-syntax (char-after)) ? )
+                  (throw 'result 0)
+                (backward-char)))
+          (?\) (condition-case nil (backward-sexp)
+                 (error (throw 'result 0))))
+          (?\" (condition-case nil (backward-sexp)
+                 (error (throw 'result 0))))
+          (t (skip-syntax-backward (string syn))))))
+    0))
+
 (defun hyai-previous-offset ()
   (skip-syntax-backward " >")
   (current-indentation))
 
 (defun hyai-grab-word ()
-  (when (looking-back "\\<[[:word:]]+")
-    (match-string-no-properties 0)))
+  (hyai-grab-syntax-backward "w"))
+
+(defun hyai-grab-syntax-forward (sc)
+  (buffer-substring-no-properties
+   (point)
+   (progn (skip-syntax-forward sc) (point))))
+
+(defun hyai-grab-syntax-backward (sc)
+  (buffer-substring-no-properties
+   (point)
+   (progn (skip-syntax-backward sc) (point))))
 
 (defun hyai-search-backward-open-bracket (across-lines)
   (catch 'result
