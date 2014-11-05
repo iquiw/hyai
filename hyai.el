@@ -28,17 +28,18 @@
 (defun hyai-indent-candidates (head)
   (save-excursion
     (or (hyai-indent-candidates-from-current head)
-        (hyai-indent-candidates-from-previous))))
+        (hyai-indent-candidates-from-previous)
+        (hyai-indent-candidates-from-backward))))
 
 (defun hyai-indent-candidates-from-current (head)
   (pcase head
-    (`"where" (if (hyai-search-previous-token nil '("where"))
+    (`"where" (if (hyai-search-token-backward nil '("where"))
                   (list (+ (current-indentation) hyai-basic-offset))
                 (list (+ (current-indentation) hyai-where-offset))))
 
-    (`"then" (list (+ (hyai-search-previous-token nil '("if"))
+    (`"then" (list (+ (hyai-search-token-backward nil '("if"))
                       hyai-basic-offset)))
-    (`"else" (list (hyai-search-previous-token nil '("then"))))
+    (`"else" (list (hyai-search-token-backward nil '("then"))))
 
     ((or `"(" `"{" `"[")
      (list (+ (hyai-previous-offset) hyai-basic-offset)))
@@ -48,12 +49,10 @@
     (`","
      (and (hyai-search-backward-open-bracket t) (list (current-column))))
 
-    (`"->" (let ((offset (hyai-search-previous-token '("::") nil)))
+    (`"->" (let ((offset (hyai-search-token-backward '("::") nil)))
              (if offset
                  (list offset)
-               (list hyai-basic-offset))))
-
-    (_ nil)))
+               (list hyai-basic-offset))))))
 
 (defun hyai-indent-candidates-from-previous ()
   (skip-syntax-backward " >")
@@ -67,19 +66,18 @@
              (if (save-excursion
                    (= (point) (progn (beginning-of-line-text) (point))))
                  (list (+ (current-column) hyai-where-offset))
-               (let ((offset (hyai-search-previous-token nil '("where"))))
+               (let ((offset (hyai-search-token-backward nil '("where"))))
                  (cond
                   (offset (list (+ offset hyai-basic-offset)))
                   ((looking-at-p "module") (list (current-indentation)))
                   (t (list (+ (current-indentation) hyai-basic-offset)))))))
             (`"of"
-             (let ((offset (hyai-search-previous-token nil '("case"))))
+             (let ((offset (hyai-search-token-backward nil '("case"))))
                (if offset
                    (mapcar (lambda (x) (+ x hyai-basic-offset))
                            (list (current-indentation) offset))
                  (_ (hyai-generate-offsets
-                     (car (hyai-current-offset-head)))))))
-            (_ (hyai-generate-offsets (car (hyai-current-offset-head))))))
+                     (car (hyai-current-offset-head)))))))))
 
       (?. (let* ((off1 (hyai-previous-offset))
                  (off2 (hyai-search-backward-open-bracket nil)))
@@ -90,9 +88,22 @@
                              (current-column)))
                       off1))))
 
-      (?\(  (list (+ (current-column) 1)))
+      (?\( (list (+ (current-column) 1))))))
 
-      (t (hyai-generate-offsets (car (hyai-current-offset-head)))))))
+(defun hyai-indent-candidates-from-backward ()
+  (let* ((offs (hyai-possible-offsets))
+         (current (current-indentation))
+         (offset current))
+    (if offs
+        (append offs (list offset))
+      (push (+ offset hyai-basic-offset) offs)
+      (while (and (> offset hyai-basic-offset)
+                  (>= (forward-line -1) 0))
+        (setq offset (current-indentation))
+        (push offset offs))
+      (when (= offset hyai-basic-offset)
+        (push offset offs))
+      (append offs '(0)))))
 
 (defun hyai-current-offset-head ()
   (beginning-of-line)
@@ -109,7 +120,7 @@
                    (t ""))))
       (cons (current-column) head))))
 
-(defun hyai-search-previous-token (symbols words)
+(defun hyai-search-token-backward (symbols words)
   (skip-syntax-backward " >")
   (catch 'result
     (while (not (bobp))
@@ -130,8 +141,25 @@
                  (error (throw 'result nil))))
           (?\" (condition-case nil (backward-sexp)
                  (error (throw 'result nil))))
-          (t (skip-syntax-backward (string syn))))))
-    nil))
+          (t (skip-syntax-backward (string syn))))))))
+
+(defun hyai-possible-offsets ()
+  (catch 'result
+    (let (offs prev)
+      (condition-case nil
+          (while (not (bobp))
+            (let ((syn (char-syntax (char-before))))
+              (cl-case syn
+                (?  (setq prev (current-column))
+                    (skip-syntax-backward " "))
+                (?_ (push (or prev (current-column)) offs)
+                    (skip-syntax-backward "_"))
+                (?> (throw 'result offs))
+                (?\) (backward-sexp))
+                (?\" (backward-sexp))
+                (t (skip-syntax-backward (string syn)))))))
+      (error (throw 'result offs))
+      offs)))
 
 (defun hyai-previous-offset ()
   (skip-syntax-backward " >")

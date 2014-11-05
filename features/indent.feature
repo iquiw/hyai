@@ -244,12 +244,22 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(7)"
 
+  Scenario: After equal line
+    Given the buffer is empty
+    When I insert:
+    """
+    main = foobar
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(7 0)"
+
   Scenario: After normal line
     Given the buffer is empty
     When I insert:
     """
     main = do
-        foo bar
+        foobar
     
     """
     And I call hyai-indent-candidates at the current point
