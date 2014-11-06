@@ -59,7 +59,7 @@
   (if (bobp)
       '(0)
     (cl-case (char-syntax (char-before))
-      (?w (pcase (hyai-grab-word)
+      (?w (pcase (hyai-grab-syntax-backward "w")
             (`"do"
              (list (+ (car (hyai-current-offset-head)) hyai-basic-offset)))
             (`"where"
@@ -73,11 +73,9 @@
                   (t (list (+ (current-indentation) hyai-basic-offset)))))))
             (`"of"
              (let ((offset (hyai-search-token-backward nil '("case"))))
-               (if offset
-                   (mapcar (lambda (x) (+ x hyai-basic-offset))
-                           (list (current-indentation) offset))
-                 (_ (hyai-generate-offsets
-                     (car (hyai-current-offset-head)))))))))
+               (when offset
+                 (mapcar (lambda (x) (+ x hyai-basic-offset))
+                         (list (current-indentation) offset)))))))
 
       (?. (let* ((off1 (hyai-previous-offset))
                  (off2 (hyai-search-backward-open-bracket nil)))
@@ -168,9 +166,6 @@
   (skip-syntax-backward " >")
   (current-indentation))
 
-(defun hyai-grab-word ()
-  (hyai-grab-syntax-backward "w"))
-
 (defun hyai-grab-syntax-forward (sc)
   (buffer-substring-no-properties
    (point)
@@ -192,15 +187,6 @@
             (error (throw 'result nil))))
          (t (backward-char)
             (throw 'result c)))))))
-
-(defun hyai-generate-offsets (current)
-  (let ((i (- current hyai-basic-offset))
-        result)
-    (while (>= i 0)
-      (push i result)
-      (setq i (- i hyai-basic-offset)))
-    (push (+ current hyai-basic-offset) result)
-    (push current result)))
 
 ;;;###autoload
 (define-minor-mode hyai-mode
