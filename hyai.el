@@ -127,45 +127,39 @@
       (cons (current-column) head))))
 
 (defun hyai-search-token-backward (symbols words)
-  (skip-syntax-backward " >")
-  (catch 'result
-    (condition-case nil
-        (while (not (bobp))
-          (let ((syn (char-syntax (char-before))))
-            (cl-case syn
-              (?w (if (null words)
-                      (skip-syntax-backward "w")
-                    (when (member (hyai-grab-syntax-backward "w") words)
-                      (throw 'result (current-column)))))
-              (?_ (if (null symbols)
-                      (skip-syntax-backward "_")
-                    (when (member (hyai-grab-syntax-backward "_") symbols)
-                      (throw 'result (current-column)))))
-              (?> (if (/= (char-syntax (char-after)) ?\s)
-                      (throw 'result nil)
-                    (backward-char)))
-              (?\) (backward-sexp))
-              (?\" (backward-sexp))
-              (t (skip-syntax-backward (string syn))))))
-      (error (throw 'result nil)))))
+  (let (result)
+    (hyai-process-syntax-backward
+     (lambda (syn)
+       (cl-case syn
+         (?w (if (null words)
+                 (skip-syntax-backward "w")
+               (if (member (hyai-grab-syntax-backward "w") words)
+                   (progn (setq result (current-column))
+                          'stop)
+                 'next)))
+         (?_ (if (null symbols)
+                 (skip-syntax-backward "_")
+               (if (member (hyai-grab-syntax-backward "_") symbols)
+                   (progn (setq result (current-column))
+                          'stop)
+                 'next)))
+         (t 'cont))))
+    result))
 
 (defun hyai-possible-offsets ()
   (let (offs prev beg curr)
-    (catch 'result
-      (condition-case nil
-          (while (not (bobp))
-            (let ((syn (char-syntax (char-before))))
-              (cl-case syn
-                (?  (setq prev (current-column))
-                    (skip-syntax-backward " "))
-                (?_ (push (or prev (current-column)) offs)
-                    (skip-syntax-backward "_")
-                    (setq beg (current-column)))
-                (?> (throw 'result t))
-                (?\) (backward-sexp))
-                (?\" (backward-sexp))
-                (t (skip-syntax-backward (string syn))))))
-        (error t)))
+    (hyai-process-syntax-backward
+     (lambda (syn)
+       (cl-case syn
+         (?\s (setq prev (current-column))
+              (skip-syntax-backward " ")
+              'next)
+         (?_ (push (or prev (current-column)) offs)
+             (skip-syntax-backward "_")
+             (setq beg (current-column))
+             'next)
+         (?> 'stop)
+         (t 'cont))))
     (setq curr (current-indentation))
     (cond
      ((and beg (/= beg curr)) (append offs (list curr)))
@@ -203,7 +197,6 @@
 
 (defun hyai-process-syntax-backward (callback &optional limit stop-beginning)
   (setq limit (or limit 0))
-  (skip-syntax-backward " >")
   (let ((res 'cont))
     (while (and (not (eq res 'stop))
                 (> (point) limit)
