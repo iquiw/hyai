@@ -52,7 +52,15 @@
     (`"->" (let ((offset (hyai-search-token-backward '("::") nil)))
              (if offset
                  (list offset)
-               (list hyai-basic-offset))))))
+               (list hyai-basic-offset))))
+
+    (`"|" (let (limit ctx)
+            (save-excursion
+              (setq ctx (hyai-search-context))
+              (setq limit (point)))
+            (or (hyai-search-head-symbol
+                 (if (equal ctx "data") '("|" "=") '("|")) limit)
+                (list (+ (current-indentation) hyai-basic-offset)))))))
 
 (defun hyai-indent-candidates-from-previous ()
   (skip-syntax-backward " >")
@@ -132,8 +140,8 @@
                       (skip-syntax-backward "_")
                     (when (member (hyai-grab-syntax-backward "_") symbols)
                       (throw 'result (current-column)))))
-              (?> (if (/= (char-syntax (char-after)) ? )
-                      (throw 'result 0)
+              (?> (if (/= (char-syntax (char-after)) ?\s)
+                      (throw 'result nil)
                     (backward-char)))
               (?\) (backward-sexp))
               (?\" (backward-sexp))
@@ -161,6 +169,50 @@
     (cond
      ((and beg (/= beg curr)) (append offs (list curr)))
      (offs (append offs '(0))))))
+
+(defun hyai-search-head-symbol (symbols limit)
+  (let (result)
+    (hyai-process-syntax-backward
+     (lambda (syn)
+       (when (= syn ?_)
+         (let ((s (hyai-grab-syntax-backward "_")) offset)
+           (setq offset (current-column))
+           (cond
+            ((member s symbols)
+             (when (or (string= s "=")
+                       (= offset (current-indentation)))
+               (push offset result))))
+           'next))
+       'cont)
+     limit)
+    (cl-remove-duplicates result)))
+
+(defun hyai-process-syntax-backward (callback &optional limit stop-beginning)
+  (setq limit (or limit 0))
+  (skip-syntax-backward " >")
+  (let ((res 'cont))
+    (while (and (not (eq res 'stop))
+                (> (point) limit)
+                (not (bobp)))
+      (let ((syn (char-syntax (char-before))))
+        (setq res (funcall callback syn))
+        (when (eq res 'cont)
+          (condition-case nil
+              (cl-case syn
+                (?> (if (and stop-beginning
+                             (/= (char-syntax (char-after)) ?\s))
+                        (setq res 'stop)
+                      (backward-char)))
+                (?\) (backward-sexp))
+                (?\" (backward-sexp))
+                (t (skip-syntax-backward (string syn))))
+            (error (setq res 'stop))))))))
+
+(defun hyai-search-context ()
+  (when (re-search-backward "^\\([^#[:space:]]+\\)" nil t)
+    (let ((ctx (match-string-no-properties 1)))
+      (when (member ctx '("data" "class" "type" "newtype" "module"))
+        ctx))))
 
 (defun hyai-previous-offset ()
   (skip-syntax-backward " >")

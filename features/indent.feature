@@ -254,6 +254,45 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(7 0)"
 
+  Scenario: Before |
+    Given the buffer is empty
+    When I insert:
+    """
+    data Foo = Bar
+    |
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(9)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    data Foo = Bar
+             | Baz
+    |
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(9)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    filter p (x:xs)
+    |
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    filter p (x:xs)
+        | p x       = x : filter p xs
+    |
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
   Scenario: After normal line
     Given the buffer is empty
     When I insert:
