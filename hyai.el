@@ -58,8 +58,9 @@
             (save-excursion
               (setq ctx (hyai-search-context))
               (setq limit (point)))
-            (or (hyai-search-head-symbol
-                 (if (equal ctx "data") '("|" "=") '("|")) limit)
+            (or (if (equal ctx "data")
+                    (hyai-search-vertical-equal limit)
+                  (hyai-search-vertical limit))
                 (list (+ (current-indentation) hyai-basic-offset)))))))
 
 (defun hyai-indent-candidates-from-previous ()
@@ -170,7 +171,20 @@
      ((and beg (/= beg curr)) (append offs (list curr)))
      (offs (append offs '(0))))))
 
-(defun hyai-search-head-symbol (symbols limit)
+(defun hyai-search-vertical (limit)
+  (let (result)
+    (hyai-process-syntax-backward
+     (lambda (syn)
+       (when (= syn ?_)
+         (let ((s (hyai-grab-syntax-backward "_")))
+           (when (string= s "|")
+             (push (current-column) result))
+           'next))
+       'cont)
+     limit)
+    (cl-remove-duplicates result)))
+
+(defun hyai-search-vertical-equal (limit)
   (let (result)
     (hyai-process-syntax-backward
      (lambda (syn)
@@ -178,10 +192,10 @@
          (let ((s (hyai-grab-syntax-backward "_")) offset)
            (setq offset (current-column))
            (cond
-            ((member s symbols)
-             (when (or (string= s "=")
-                       (= offset (current-indentation)))
-               (push offset result))))
+            ((or (string= s "|")
+                 (= offset (current-indentation)))
+             (push offset result))
+            ((string= s "=") (push offset result)))
            'next))
        'cont)
      limit)
