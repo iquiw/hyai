@@ -99,7 +99,8 @@
 
 (defun hyai-indent-candidates-from-backward ()
   (let* ((offs (hyai-possible-offsets))
-         (offset (current-indentation)))
+         (coffset (current-indentation))
+         (offset coffset))
     (or offs
         (progn
           (push (+ offset hyai-basic-offset) offs)
@@ -109,7 +110,9 @@
             (push offset offs))
           (when (= offset hyai-basic-offset)
             (push offset offs))
-          (append offs '(0))))))
+          (if (= coffset 0)
+              (push 0 offs)
+            (append offs '(0)))))))
 
 (defun hyai-current-offset-head ()
   (beginning-of-line)
@@ -154,9 +157,11 @@
          (?\s (setq prev (current-column))
               (skip-syntax-backward " ")
               'next)
-         (?_ (push (or prev (current-column)) offs)
-             (skip-syntax-backward "_")
-             (setq beg (current-column))
+         (?_ (setq curr (current-column))
+             (when (member (hyai-grab-syntax-backward "_")
+                           '("=" "->" "<-"))
+               (push (or prev curr) offs)
+               (setq beg (current-column)))
              'next)
          (?> 'stop)
          (t 'cont))))

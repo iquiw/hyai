@@ -144,7 +144,7 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(8)"
 
-  Scenario: After open parenthesis
+  Scenario: After (
     Given the buffer is empty
     When I insert:
     """
@@ -155,7 +155,7 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(6)"
 
-  Scenario: Before open parenthesis
+  Scenario: Before (
     Given the buffer is empty
     When I insert:
     """
@@ -165,7 +165,7 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4)"
 
-  Scenario: Before closed parenthesis
+  Scenario: Before )
     Given the buffer is empty
     When I insert:
     """
@@ -192,7 +192,7 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4)"
 
-  Scenario: After colon
+  Scenario: After ,
     Given the buffer is empty
     When I insert:
     """
@@ -202,7 +202,7 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(18)"
 
-  Scenario: Before colon
+  Scenario: Before ,
     Given the buffer is empty
     When I insert:
     """
@@ -244,7 +244,7 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(7)"
 
-  Scenario: After equal line
+  Scenario: After = line
     Given the buffer is empty
     When I insert:
     """
@@ -292,6 +292,16 @@ Feature: hyai indent
     """
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4)"
+
+  Scenario: After import
+    Given the buffer is empty
+    When I insert:
+    """
+    import System.IO
+
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0 4)"
 
   Scenario: After normal line
     Given the buffer is empty
