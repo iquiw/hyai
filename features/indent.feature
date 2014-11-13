@@ -144,6 +144,16 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(8)"
 
+  Scenario: Before in
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = let bar = 1
+    in
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(9)"
+
   Scenario: After (
     Given the buffer is empty
     When I insert:

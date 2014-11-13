@@ -41,6 +41,8 @@
                       hyai-basic-offset)))
     (`"else" (list (hyai-search-token-backward nil '("then"))))
 
+    (`"in" (list (hyai-search-token-backward nil '("let"))))
+
     ((or `"(" `"{" `"[")
      (list (+ (hyai-previous-offset) hyai-basic-offset)))
     ((or `")" `"}" `"]")
