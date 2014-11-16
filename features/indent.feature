@@ -262,7 +262,7 @@ Feature: hyai indent
     
     """
     And I call hyai-indent-candidates at the current point
-    Then indent candidates are "(7 0)"
+    Then indent candidates are "(0 7)"
 
   Scenario: Before |
     Given the buffer is empty
@@ -312,6 +312,17 @@ Feature: hyai indent
     """
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(0 4)"
+
+  Scenario: After <- line
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+        args <- getArgs
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4 12 0)"
 
   Scenario: After normal line
     Given the buffer is empty

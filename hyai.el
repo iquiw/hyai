@@ -100,21 +100,25 @@
       (?\( (list (+ (current-column) 1))))))
 
 (defun hyai-indent-candidates-from-backward ()
-  (let* ((offs (hyai-possible-offsets))
+  (let* ((offs1 (hyai-possible-offsets))
+         offs2
          (coffset (current-indentation))
+         (minoff (or (car offs1) coffset))
          (offset coffset))
-    (or offs
-        (progn
-          (push (+ offset hyai-basic-offset) offs)
-          (while (and (> offset hyai-basic-offset)
-                      (>= (forward-line -1) 0))
-            (setq offset (current-indentation))
-            (push offset offs))
-          (when (= offset hyai-basic-offset)
-            (push offset offs))
-          (if (= coffset 0)
-              (push 0 offs)
-            (append offs '(0)))))))
+    (unless offs1
+      (push (+ offset hyai-basic-offset) offs1)
+      (push offset offs1))
+    (while (and (> offset hyai-basic-offset)
+                (>= (forward-line -1) 0))
+      (when (> offset minoff)
+        (push offset offs2))
+      (setq offset (current-indentation)))
+    (when (and (= offset hyai-basic-offset)
+               (< offset minoff))
+      (push offset offs2))
+    (when (/= coffset 0)
+      (push 0 offs2))
+    (append offs1 offs2)))
 
 (defun hyai-current-offset-head ()
   (beginning-of-line)
@@ -169,8 +173,8 @@
          (t 'cont))))
     (setq curr (current-indentation))
     (cond
-     ((and beg (/= beg curr)) (append offs (list curr)))
-     (offs (append offs '(0))))))
+     ((and beg (/= beg curr)) (cons curr offs))
+     (t offs))))
 
 (defun hyai-search-vertical (limit)
   (let (result)
