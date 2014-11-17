@@ -116,7 +116,7 @@
     (when (and (= offset hyai-basic-offset)
                (< offset minoff))
       (push offset offs2))
-    (when (/= coffset 0)
+    (when (< 0 minoff)
       (push 0 offs2))
     (append offs1 offs2)))
 
@@ -173,7 +173,8 @@
          (t 'cont))))
     (setq curr (current-indentation))
     (cond
-     ((and beg (/= beg curr)) (cons curr offs))
+     ((and beg (/= beg curr) (/= curr 0))
+      (cons curr offs))
      (t offs))))
 
 (defun hyai-search-vertical (limit)

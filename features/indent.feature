@@ -262,7 +262,7 @@ Feature: hyai indent
     
     """
     And I call hyai-indent-candidates at the current point
-    Then indent candidates are "(0 7)"
+    Then indent candidates are "(7 0)"
 
   Scenario: Before |
     Given the buffer is empty
