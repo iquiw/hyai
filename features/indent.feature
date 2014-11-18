@@ -264,6 +264,16 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(7 0)"
 
+  Scenario: After let line
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = let bar = True
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(13 19 0)"
+
   Scenario: Before |
     Given the buffer is empty
     When I insert:
