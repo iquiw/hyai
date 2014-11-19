@@ -27,7 +27,7 @@
 
 (defun hyai-indent-candidates (head)
   (save-excursion
-    (or (hyai-indent-candidates-from-current head)
+    (or (save-excursion (hyai-indent-candidates-from-current head))
         (hyai-indent-candidates-from-previous)
         (hyai-indent-candidates-from-backward))))
 
@@ -37,11 +37,11 @@
                   (list (+ (current-indentation) hyai-basic-offset))
                 (list (+ (current-indentation) hyai-where-offset))))
 
-    (`"then" (list (+ (hyai-search-token-backward nil '("if"))
-                      hyai-basic-offset)))
-    (`"else" (list (hyai-search-token-backward nil '("then"))))
+    (`"then" (hyai-offsetnize (hyai-search-token-backward nil '("if"))
+                              hyai-basic-offset))
+    (`"else" (hyai-offsetnize (hyai-search-token-backward nil '("then"))))
 
-    (`"in" (list (hyai-search-token-backward nil '("let"))))
+    (`"in" (hyai-offsetnize (hyai-search-token-backward nil '("let"))))
 
     ((or `"(" `"{" `"[")
      (list (+ (hyai-previous-offset) hyai-basic-offset)))
@@ -51,10 +51,8 @@
     (`","
      (and (hyai-search-backward-open-bracket t) (list (current-column))))
 
-    (`"->" (let ((offset (hyai-search-token-backward '("::") nil)))
-             (if offset
-                 (list offset)
-               (list hyai-basic-offset))))
+    (`"->" (or (hyai-offsetnize (hyai-search-token-backward '("::") nil))
+               (list hyai-basic-offset)))
 
     (`"|" (let (limit ctx)
             (save-excursion
@@ -77,11 +75,12 @@
              (if (save-excursion
                    (= (point) (progn (beginning-of-line-text) (point))))
                  (list (+ (current-column) hyai-where-offset))
-               (let ((offset (hyai-search-token-backward nil '("where"))))
-                 (cond
-                  (offset (list (+ offset hyai-basic-offset)))
-                  ((looking-at-p "module") (list (current-indentation)))
-                  (t (list (+ (current-indentation) hyai-basic-offset)))))))
+               (or (hyai-offsetnize
+                    (hyai-search-token-backward nil '("where"))
+                    hyai-basic-offset)
+                   (if (looking-at-p "module")
+                       (list (current-indentation))
+                     (list (+ (current-indentation) hyai-basic-offset))))))
             (`"of"
              (let ((offset (hyai-search-token-backward nil '("case"))))
                (when offset
@@ -263,6 +262,13 @@
          (t (backward-char)
             (throw 'result c)))))))
 
+(defun hyai-offsetnize (obj &optional plus)
+  (setq plus (or plus 0))
+  (cond
+   ((listp obj) (mapcar (lambda (x) (+ x plus)) obj))
+   ((numberp obj) (list (+ obj plus)))
+   (t nil)))
+
 ;;;###autoload
 (define-minor-mode hyai-mode
   "Haskell Yet Another Indentation minor mode."
@@ -271,10 +277,12 @@
   (when hyai-mode
     (set (make-local-variable 'indent-line-function) 'hyai-indent-line)))
 
+;;;###autoload
 (defun turn-on-hyai ()
   (interactive)
   (hyai-mode 1))
 
+;;;###autoload
 (defun turn-off-hyai ()
   (interactive)
   (hyai-mode 0))
