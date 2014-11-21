@@ -87,6 +87,10 @@
                  (mapcar (lambda (x) (+ x hyai-basic-offset))
                          (list (current-indentation) offset)))))))
 
+      (?_ (pcase (hyai-grab-syntax-backward "_")
+            (`"="
+             (list (+ (current-indentation) hyai-basic-offset)))))
+
       (?. (let* ((off1 (hyai-previous-offset))
                  (off2 (hyai-search-backward-open-bracket nil)))
             (list (or (and off2
@@ -236,6 +240,18 @@
       (when (member ctx '("data" "class" "type" "newtype" "module"))
         ctx))))
 
+(defun hyai-search-backward-open-bracket (across-lines)
+  (catch 'result
+    (while (< (skip-syntax-backward (if across-lines "^()" "^()>")) 0)
+      (let ((c (char-before)))
+        (cond
+         ((not c) (throw 'result nil))
+         ((= (char-syntax c) ?\))
+          (condition-case nil (backward-sexp)
+            (error (throw 'result nil))))
+         (t (backward-char)
+            (throw 'result c)))))))
+
 (defun hyai-previous-offset ()
   (skip-syntax-backward " >")
   (current-indentation))
@@ -249,18 +265,6 @@
   (buffer-substring-no-properties
    (point)
    (progn (skip-syntax-backward sc) (point))))
-
-(defun hyai-search-backward-open-bracket (across-lines)
-  (catch 'result
-    (while (< (skip-syntax-backward (if across-lines "^()" "^()>")) 0)
-      (let ((c (char-before)))
-        (cond
-         ((not c) (throw 'result nil))
-         ((= (char-syntax c) ?\))
-          (condition-case nil (backward-sexp)
-            (error (throw 'result nil))))
-         (t (backward-char)
-            (throw 'result c)))))))
 
 (defun hyai-offsetnize (obj &optional plus)
   (setq plus (or plus 0))
@@ -282,7 +286,6 @@
   (interactive)
   (hyai-mode 1))
 
-;;;###autoload
 (defun turn-off-hyai ()
   (interactive)
   (hyai-mode 0))
