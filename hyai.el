@@ -16,14 +16,17 @@
 (defconst hyai-where-offset 2)
 
 (defun hyai-indent-line ()
-  (let* ((oh (hyai-current-offset-head))
+  (let* ((cc (current-column))
+         (oh (hyai-current-offset-head))
          (offset (car oh))
          (head (cdr oh))
          (indents (hyai-indent-candidates head))
          (nexts (when (eq this-command 'indent-for-tab-command)
                   (cdr (member offset indents)))))
     (when indents
-      (indent-line-to (car (or nexts indents))))))
+      (indent-line-to (car (or nexts indents)))
+      (when (> cc offset)
+        (forward-char (- cc offset))))))
 
 (defun hyai-indent-candidates (head)
   (save-excursion
