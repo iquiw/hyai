@@ -111,6 +111,16 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(6)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    module Main where
+    foo = bar
+    where
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(2)"
+
   Scenario: After case
     Given the buffer is empty
     When I insert:

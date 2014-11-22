@@ -30,9 +30,11 @@
 
 (defun hyai-indent-candidates (head)
   (save-excursion
+    (unless (bobp)
+      (backward-char))
     (or (save-excursion (hyai-indent-candidates-from-current head))
-        (hyai-indent-candidates-from-previous)
-        (hyai-indent-candidates-from-backward))))
+        (save-excursion (hyai-indent-candidates-from-previous))
+        (save-excursion (hyai-indent-candidates-from-backward)))))
 
 (defun hyai-indent-candidates-from-current (head)
   (pcase head
@@ -67,13 +69,12 @@
                 (list (+ (current-indentation) hyai-basic-offset)))))))
 
 (defun hyai-indent-candidates-from-previous ()
-  (skip-syntax-backward " >")
   (if (bobp)
       '(0)
     (cl-case (char-syntax (char-before))
       (?w (pcase (hyai-grab-syntax-backward "w")
             (`"do"
-             (list (+ (car (hyai-current-offset-head)) hyai-basic-offset)))
+             (list (+ (current-indentation) hyai-basic-offset)))
             (`"where"
              (if (save-excursion
                    (= (point) (progn (beginning-of-line-text) (point))))
@@ -128,20 +129,22 @@
 
 (defun hyai-current-offset-head ()
   (beginning-of-line)
-  (skip-syntax-forward " ")
-  (if (eobp)
-     '(0 . "")
-    (let* ((c (char-after))
-           (head (cl-case (char-syntax c)
-                   (?w (save-excursion (hyai-grab-syntax-forward "w")))
-                   (?_ (save-excursion (hyai-grab-syntax-forward "_")))
-                   (?\( (string c))
-                   (?\) (string c))
-                   (?. (string c))
-                   (t ""))))
-      (cons (current-column) head))))
+  (save-excursion
+    (skip-syntax-forward " ")
+    (if (eobp)
+        '(0 . "")
+      (let* ((c (char-after))
+             (head (cl-case (char-syntax c)
+                     (?w (hyai-grab-syntax-forward "w"))
+                     (?_ (hyai-grab-syntax-forward "_"))
+                     (?\( (string c))
+                     (?\) (string c))
+                     (?. (string c))
+                     (t ""))))
+        (cons (current-column) head)))))
 
 (defun hyai-search-token-backward (symbols words)
+  (skip-syntax-backward " >")
   (let (result)
     (hyai-process-syntax-backward
      (lambda (syn)
@@ -158,7 +161,8 @@
                    (progn (setq result (current-column))
                           'stop)
                  'next)))
-         (t 'cont))))
+         (t 'cont)))
+     nil t)
     result))
 
 (defun hyai-possible-offsets ()
