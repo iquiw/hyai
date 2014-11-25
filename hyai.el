@@ -134,6 +134,7 @@
     (if (eobp)
         '(0 . "")
       (let* ((c (char-after))
+             (cc (current-column))
              (head (cl-case (char-syntax c)
                      (?w (hyai-grab-syntax-forward "w"))
                      (?_ (hyai-grab-syntax-forward "_"))
@@ -141,7 +142,7 @@
                      (?\) (string c))
                      (?. (string c))
                      (t ""))))
-        (cons (current-column) head)))))
+        (cons cc head)))))
 
 (defun hyai-search-token-backward (symbols words)
   (skip-syntax-backward " >")
