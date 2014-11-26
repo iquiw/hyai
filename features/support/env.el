@@ -20,7 +20,8 @@
  (defvar hyai-test-candidates-output)
  (switch-to-buffer
   (get-buffer-create "*hyai*"))
- (haskell-mode))
+ (haskell-mode)
+ (turn-on-hyai))
 
 (Before
  (setq hyai-test-candidates-output nil))
