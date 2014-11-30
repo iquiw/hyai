@@ -294,6 +294,31 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(13 19 0)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+        let foo = 1
+            bar = 2
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(8 14 0 4)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    main = foo
+      where
+        bar = do
+            baz
+            let qux = 1
+                quux = 2
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(12 19 0 4 8)"
+
   Scenario: Before |
     Given the buffer is empty
     When I insert:
