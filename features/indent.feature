@@ -244,6 +244,16 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(17)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    import System.Process ( CreateProcess(..)
+                          , StdStream(..)
+    ,
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(22)"
+
   Scenario: Before ->
     Given the buffer is empty
     When I insert:

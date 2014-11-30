@@ -251,7 +251,7 @@
 
 (defun hyai-search-backward-open-bracket (across-lines)
   (catch 'result
-    (while (< (skip-syntax-backward (if across-lines "^()" "^()>")) 0)
+    (while (<= (skip-syntax-backward (if across-lines "^()" "^()>")) 0)
       (let ((c (char-before)))
         (cond
          ((not c) (throw 'result nil))
