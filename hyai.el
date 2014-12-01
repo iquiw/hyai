@@ -48,7 +48,12 @@
     (`"in" (hyai-offsetnize (hyai-search-token-backward nil '("let"))))
 
     ((or `"(" `"{" `"[")
-     (list (+ (hyai-previous-offset) hyai-basic-offset)))
+     (let (offset)
+       (save-excursion
+         (when (member (hyai-search-context) '("import" "module"))
+           (setq offset (current-column))
+           (list (+ offset hyai-basic-offset))))))
+
     ((or `")" `"}" `"]")
      (and (hyai-search-backward-open-bracket t) (list (current-column))))
 
@@ -245,7 +250,7 @@
 (defun hyai-search-context ()
   (when (re-search-backward "^\\([^#[:space:]]+\\)" nil t)
     (let ((ctx (match-string-no-properties 1)))
-      (when (member ctx '("data" "class" "type" "newtype" "module"))
+      (when (member ctx '("data" "class" "import" "module" "newtype" "type"))
         ctx))))
 
 (defun hyai-search-backward-open-bracket (across-lines)
