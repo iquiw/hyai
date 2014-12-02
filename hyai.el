@@ -47,12 +47,15 @@
 
     (`"in" (hyai-offsetnize (hyai-search-token-backward nil '("let"))))
 
-    ((or `"(" `"{" `"[")
+    ((or `"(" `"[")
      (let (offset)
        (save-excursion
          (when (member (hyai-search-context) '("import" "module"))
            (setq offset (current-column))
            (list (+ offset hyai-basic-offset))))))
+
+    (`"{"
+     (list (+ (hyai-previous-offset) hyai-basic-offset)))
 
     ((or `")" `"}" `"]")
      (and (hyai-search-backward-open-bracket t) (list (current-column))))
