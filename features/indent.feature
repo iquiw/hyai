@@ -417,6 +417,17 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4 12 0)"
 
+  Scenario: After ( line
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+        putStrLn (foo
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(14)"
+
   Scenario: After normal line
     Given the buffer is empty
     When I insert:
