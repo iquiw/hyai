@@ -428,6 +428,16 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(14)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+        foobar (Baz "qux"
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(12)"
+
   Scenario: After normal line
     Given the buffer is empty
     When I insert:

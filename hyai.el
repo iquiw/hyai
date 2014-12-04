@@ -195,7 +195,7 @@
                (setq beg (current-column)))
              'next)
          (?\( (setq curr (current-column))
-              (push (or prev curr) offs)
+              (push (if (= (char-syntax (char-after)) ?\s) prev curr) offs)
               'stop)
          (?> 'stop)
          (t 'cont))))
