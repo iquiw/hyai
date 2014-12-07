@@ -47,14 +47,14 @@
 
     (`"in" (hyai-offsetnize (hyai-search-token-backward nil '("let"))))
 
-    ((or `"(" `"[")
+    (`"("
      (let (offset)
        (save-excursion
          (when (member (hyai-search-context) '("import" "module"))
            (setq offset (current-column))
            (list (+ offset hyai-basic-offset))))))
 
-    (`"{"
+    ((or `"{" `"[")
      (list (+ (hyai-previous-offset) hyai-basic-offset)))
 
     ((or `")" `"}" `"]")
@@ -111,7 +111,10 @@
                              (current-column)))
                       off1))))
 
-      (?\( (list (+ (current-column) 1))))))
+      (?\( (pcase (char-before)
+             (?\( (list (+ (current-column) 1)))
+             ((or ?\{ ?\[)
+              (list (+ (hyai-previous-offset) hyai-basic-offset))))))))
 
 (defun hyai-indent-candidates-from-backward ()
   (let* ((offs1 (hyai-possible-offsets))
@@ -138,7 +141,7 @@
       (append offs1 offs2))))
 
 (defun hyai-current-offset-head ()
-  (beginning-of-line)
+  (forward-line 0)
   (save-excursion
     (skip-syntax-forward " ")
     (if (eobp)
@@ -160,6 +163,9 @@
     (hyai-process-syntax-backward
      (lambda (syn)
        (cl-case syn
+         (?> (if (/= (char-syntax (char-after)) ?\s)
+                 (setq res 'stop)
+               (backward-char)))
          (?w (if (null words)
                  (skip-syntax-backward "w")
                (if (member (hyai-grab-syntax-backward "w") words)
@@ -172,8 +178,7 @@
                    (progn (setq result (current-column))
                           'stop)
                  'next)))
-         (t 'cont)))
-     nil t)
+         (t 'cont))))
     result))
 
 (defun hyai-possible-offsets ()
@@ -235,7 +240,7 @@
      limit)
     (cl-remove-duplicates result)))
 
-(defun hyai-process-syntax-backward (callback &optional limit stop-beginning)
+(defun hyai-process-syntax-backward (callback &optional limit)
   (setq limit (or limit 0))
   (let ((res 'cont))
     (while (and (not (eq res 'stop))
@@ -246,10 +251,7 @@
         (when (eq res 'cont)
           (condition-case nil
               (cl-case syn
-                (?> (if (and stop-beginning
-                             (/= (char-syntax (char-after)) ?\s))
-                        (setq res 'stop)
-                      (backward-char)))
+                (?> (backward-char))
                 (?\) (backward-sexp))
                 (?\" (backward-sexp))
                 (t (skip-syntax-backward (string syn))))
