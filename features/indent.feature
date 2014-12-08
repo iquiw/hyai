@@ -240,6 +240,16 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    data Person = Person
+        {
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(6)"
+
   Scenario: Before {
     Given the buffer is empty
     When I insert:

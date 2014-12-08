@@ -83,8 +83,7 @@
             (`"do"
              (list (+ (current-indentation) hyai-basic-offset)))
             (`"where"
-             (if (save-excursion
-                   (= (point) (progn (beginning-of-line-text) (point))))
+             (if (hyai-beginning-of-line-p)
                  (list (+ (current-column) hyai-where-offset))
                (or (hyai-offsetnize
                     (hyai-search-token-backward nil '("where"))
@@ -114,7 +113,11 @@
       (?\( (pcase (char-before)
              (?\( (list (+ (current-column) 1)))
              ((or ?\{ ?\[)
-              (list (+ (hyai-previous-offset) hyai-basic-offset))))))))
+              (let ((cc (current-column))
+                    (offset (hyai-previous-offset)))
+                (if (= offset (- cc 1))
+                    (list (+ offset 2))
+                  (list (+ offset hyai-basic-offset))))))))))
 
 (defun hyai-indent-candidates-from-backward ()
   (let* ((offs1 (hyai-possible-offsets))
@@ -278,6 +281,9 @@
 (defun hyai-previous-offset ()
   (skip-syntax-backward " >")
   (current-indentation))
+
+(defun hyai-beginning-of-line-p ()
+  (= (current-column) (current-indentation)))
 
 (defun hyai-grab-syntax-forward (sc)
   (buffer-substring-no-properties
