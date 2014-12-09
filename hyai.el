@@ -125,7 +125,7 @@
          (offset (current-indentation))
          (minoff (or (car offs1) offset))
          (poffset 0))
-    (if (and offs1 (eq (char-before) ?\())
+    (if (and offs1 (memq (char-before) '(?\( ?\[ ?\{)))
         offs1
       (unless offs1
         (push (+ offset hyai-basic-offset) offs1)

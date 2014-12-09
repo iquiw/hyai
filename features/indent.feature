@@ -260,6 +260,26 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4)"
 
+  Scenario: After [
+    Given the buffer is empty
+    When I insert:
+    """
+    foobarbaz = [ qux
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(14)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foo = do
+        bar <- baz [
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(8)"
+
   Scenario: After ,
     Given the buffer is empty
     When I insert:
