@@ -57,7 +57,12 @@
     ((or `"{" `"[")
      (list (+ (hyai-previous-offset) hyai-basic-offset)))
 
-    ((or `")" `"}" `"]")
+    (`"]"
+     (if (hyai-search-backward-open-bracket nil)
+         (list (current-column))
+       (list (current-indentation))))
+
+    ((or `")" `"}")
      (and (hyai-search-backward-open-bracket t) (list (current-column))))
 
     (`","
@@ -275,6 +280,8 @@
          ((= (char-syntax c) ?\))
           (condition-case nil (backward-sexp)
             (error (throw 'result nil))))
+         ((= (char-syntax c) ?\>)
+          (throw 'result nil))
          (t (backward-char)
             (throw 'result c)))))))
 
