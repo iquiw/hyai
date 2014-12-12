@@ -300,6 +300,17 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = [
+        foo,
+        bar
+    ]
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
   Scenario: After ,
     Given the buffer is empty
     When I insert:
