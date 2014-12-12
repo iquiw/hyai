@@ -58,9 +58,7 @@
      (list (+ (hyai-previous-offset) hyai-basic-offset)))
 
     (`"]"
-     (if (hyai-search-backward-open-bracket nil)
-         (list (current-column))
-       (list (current-indentation))))
+     (hyai-offsetnize (hyai-search-comma-bracket)))
 
     ((or `")" `"}")
      (and (hyai-search-backward-open-bracket t) (list (current-column))))
@@ -235,7 +233,7 @@
   (let (result)
     (hyai-process-syntax-backward
      (lambda (syn)
-       (when (= syn ?_)
+       (if (= syn ?_)
          (let ((s (hyai-grab-syntax-backward "_")) offset)
            (setq offset (current-column))
            (cond
@@ -247,6 +245,28 @@
        'cont)
      limit)
     (cl-remove-duplicates result)))
+
+(defun hyai-search-comma-bracket ()
+  (let (result)
+    (hyai-process-syntax-backward
+     (lambda (syn)
+       (cl-case syn
+         (?\s (when (hyai-beginning-of-line-p)
+                (setq result (current-column)))
+              'cont)
+         (?\( (unless result
+                (setq result (- (current-column) 1)))
+              'stop)
+         (?. (backward-char)
+             (if (hyai-beginning-of-line-p)
+                    (progn (setq result (current-column)) 'stop)
+               (setq result nil)
+               'next))
+         (?> (backward-char)
+             (skip-syntax-backward " ")
+             'next)
+         (t 'cont))))
+    result))
 
 (defun hyai-process-syntax-backward (callback &optional limit)
   (setq limit (or limit 0))
