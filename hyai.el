@@ -57,11 +57,14 @@
     ((or `"{" `"[")
      (list (+ (hyai-previous-offset) hyai-basic-offset)))
 
+    (`")"
+     (and (hyai-search-backward-open-bracket t) (list (current-column))))
+
     (`"]"
      (hyai-offsetnize (hyai-search-comma-bracket)))
 
-    ((or `")" `"}")
-     (and (hyai-search-backward-open-bracket t) (list (current-column))))
+    (`"}"
+     (hyai-offsetnize (hyai-search-comma-bracket)))
 
     (`","
      (and (hyai-search-backward-open-bracket t) (list (current-column))))
@@ -167,7 +170,7 @@
   (skip-syntax-backward " >")
   (let (result)
     (hyai-process-syntax-backward
-     (lambda (syn)
+     (lambda (syn c)
        (cl-case syn
          (?> (if (/= (char-syntax (char-after)) ?\s)
                  (setq res 'stop)
@@ -190,7 +193,7 @@
 (defun hyai-possible-offsets ()
   (let (offs prev beg curr)
     (hyai-process-syntax-backward
-     (lambda (syn)
+     (lambda (syn c)
        (cl-case syn
          (?\s (setq prev (current-column))
               (skip-syntax-backward " ")
@@ -219,7 +222,7 @@
 (defun hyai-search-vertical (limit)
   (let (result)
     (hyai-process-syntax-backward
-     (lambda (syn)
+     (lambda (syn c)
        (when (= syn ?_)
          (let ((s (hyai-grab-syntax-backward "_")))
            (when (string= s "|")
@@ -232,7 +235,7 @@
 (defun hyai-search-vertical-equal (limit)
   (let (result)
     (hyai-process-syntax-backward
-     (lambda (syn)
+     (lambda (syn c)
        (if (= syn ?_)
          (let ((s (hyai-grab-syntax-backward "_")) offset)
            (setq offset (current-column))
@@ -249,13 +252,14 @@
 (defun hyai-search-comma-bracket ()
   (let (result)
     (hyai-process-syntax-backward
-     (lambda (syn)
+     (lambda (syn c)
        (cl-case syn
          (?\s (when (hyai-beginning-of-line-p)
                 (setq result (current-column)))
               'cont)
-         (?\( (unless result
-                (setq result (- (current-column) 1)))
+         (?\( (cond
+               ((null result) (setq result (- (current-column) 1)))
+               ((= c ?\{) (setq result (current-indentation))))
               'stop)
          (?. (backward-char)
              (if (hyai-beginning-of-line-p)
@@ -274,8 +278,9 @@
     (while (and (not (eq res 'stop))
                 (> (point) limit)
                 (not (bobp)))
-      (let ((syn (char-syntax (char-before))))
-        (setq res (funcall callback syn))
+      (let* ((c (char-before))
+             (syn (char-syntax c)))
+        (setq res (funcall callback syn c))
         (when (eq res 'cont)
           (condition-case nil
               (cl-case syn

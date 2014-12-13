@@ -260,6 +260,39 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4)"
 
+  Scenario: Before }
+    Given the buffer is empty
+    When I insert:
+    """
+    data Person = Person {
+    }
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(21)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    data Person = Person
+        { firstName :: !String  -- ^ First name
+        , lastName  :: !String  -- ^ Last name
+        , age       :: !Int     -- ^ Age
+    } deriving (Eq, Show)
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+        run defaultConfig {
+            path = "test.txt"
+    }
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
   Scenario: After [
     Given the buffer is empty
     When I insert:
