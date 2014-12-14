@@ -61,13 +61,13 @@
      (and (hyai-search-backward-open-bracket t) (list (current-column))))
 
     (`"]"
-     (hyai-offsetnize (hyai-search-comma-bracket)))
+     (hyai-offsetnize (hyai-search-comma-bracket ?\])))
 
     (`"}"
-     (hyai-offsetnize (hyai-search-comma-bracket)))
+     (hyai-offsetnize (hyai-search-comma-bracket ?\})))
 
     (`","
-     (and (hyai-search-backward-open-bracket t) (list (current-column))))
+     (hyai-offsetnize (hyai-search-comma-bracket ?,)))
 
     (`"->" (or (hyai-offsetnize (hyai-search-token-backward '("::") nil))
                (list hyai-basic-offset)))
@@ -249,7 +249,7 @@
      limit)
     (cl-remove-duplicates result)))
 
-(defun hyai-search-comma-bracket ()
+(defun hyai-search-comma-bracket (origin)
   (let (result)
     (hyai-process-syntax-backward
      (lambda (syn c)
@@ -257,8 +257,10 @@
          (?\s (when (hyai-beginning-of-line-p)
                 (setq result (current-column)))
               'cont)
-         (?\( (cond
-               ((null result) (setq result (- (current-column) 1)))
+         (?\( (backward-char)
+              (cond
+               ((null result) (setq result (current-column)))
+               ((= origin ?,) (setq result (current-column)))
                ((= c ?\{) (setq result (current-indentation))))
               'stop)
          (?. (backward-char)

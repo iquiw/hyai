@@ -419,6 +419,15 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(22)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    foo = mconcat [ "This is ("
+    ,
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(14)"
+
   Scenario: Before ->
     Given the buffer is empty
     When I insert:
