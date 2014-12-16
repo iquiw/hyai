@@ -58,7 +58,7 @@
      (list (+ (hyai-previous-offset) hyai-basic-offset)))
 
     (`")"
-     (and (hyai-search-backward-open-bracket t) (list (current-column))))
+     (hyai-offsetnize (hyai-search-comma-bracket ?\))))
 
     (`"]"
      (hyai-offsetnize (hyai-search-comma-bracket ?\])))
@@ -108,7 +108,7 @@
              (list (+ (current-indentation) hyai-basic-offset)))))
 
       (?. (let* ((off1 (hyai-previous-offset))
-                 (off2 (hyai-search-backward-open-bracket nil)))
+                 (off2 (hyai-search-comma-bracket ?,)))
             (list (or (and off2
                            (progn
                              (forward-char)
@@ -297,20 +297,6 @@
     (let ((ctx (match-string-no-properties 1)))
       (when (member ctx '("data" "class" "import" "module" "newtype" "type"))
         ctx))))
-
-(defun hyai-search-backward-open-bracket (across-lines)
-  (catch 'result
-    (while (<= (skip-syntax-backward (if across-lines "^()" "^()>")) 0)
-      (let ((c (char-before)))
-        (cond
-         ((not c) (throw 'result nil))
-         ((= (char-syntax c) ?\))
-          (condition-case nil (backward-sexp)
-            (error (throw 'result nil))))
-         ((= (char-syntax c) ?\>)
-          (throw 'result nil))
-         (t (backward-char)
-            (throw 'result c)))))))
 
 (defun hyai-previous-offset ()
   (skip-syntax-backward " >")
