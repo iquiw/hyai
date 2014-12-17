@@ -116,14 +116,18 @@
                              (current-column)))
                       off1))))
 
-      (?\( (pcase (char-before)
+      (?\( (cl-case (char-before)
              (?\( (list (+ (current-column) 1)))
-             ((or ?\{ ?\[)
+             ((?\{ ?\[)
               (let ((cc (current-column))
                     (offset (hyai-previous-offset)))
                 (if (= offset (- cc 1))
                     (list (+ offset 2))
-                  (list (+ offset hyai-basic-offset))))))))))
+                  (list (+ offset hyai-basic-offset)))))))
+
+      (?\) (cl-case (char-before)
+             (?\) (when (equal (hyai-search-context) "import")
+                    '(0))))))))
 
 (defun hyai-indent-candidates-from-backward ()
   (let* ((offs1 (hyai-possible-offsets))

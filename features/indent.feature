@@ -552,6 +552,27 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(0 4)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    import System.IO (getChar)
+
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    import qualified System.IO as IO
+        ( getChar
+        , putChar
+        )
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0)"
+
   Scenario: After <- line
     Given the buffer is empty
     When I insert:
