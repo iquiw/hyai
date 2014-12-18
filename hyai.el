@@ -89,7 +89,7 @@
             (`"do"
              (list (+ (current-indentation) hyai-basic-offset)))
             (`"where"
-             (if (hyai-beginning-of-line-p)
+             (if (hyai-botp)
                  (list (+ (current-column) hyai-where-offset))
                (or (hyai-offsetnize
                     (hyai-search-token-backward nil '("where"))
@@ -130,12 +130,15 @@
                     '(0))))))))
 
 (defun hyai-indent-candidates-from-backward ()
-  (let* ((offs1 (hyai-possible-offsets))
+  (let* ((off-tok (hyai-possible-offsets))
+         (offs1 (car off-tok))
+         (token (cdr off-tok))
          offs2
          (offset (current-indentation))
          (minoff (or (car offs1) offset))
          (poffset 0))
-    (if (and offs1 (memq (char-before) '(?\( ?\[ ?\{)))
+    (if (or (and offs1 (memq (char-before) '(?\( ?\[ ?\{)))
+            (equal token "then"))
         offs1
       (unless offs1
         (push (+ offset hyai-basic-offset) offs1)
@@ -195,7 +198,7 @@
     result))
 
 (defun hyai-possible-offsets ()
-  (let (offs prev beg curr)
+  (let (offs prev beg curr last-token)
     (hyai-process-syntax-backward
      (lambda (syn c)
        (cl-case syn
@@ -203,9 +206,9 @@
               (skip-syntax-backward " ")
               'next)
          (?w (setq curr (current-column))
-             (when (string= (hyai-grab-syntax-backward "w") "let")
-               (push (or prev curr) offs)
-               'stop))
+             (setq last-token (hyai-grab-syntax-backward "w"))
+             (when (member last-token  '("let" "then"))
+               (push (or prev curr) offs) 'stop))
          (?_ (setq curr (current-column))
              (when (member (hyai-grab-syntax-backward "_")
                            '("=" "->" "<-"))
@@ -218,10 +221,12 @@
          (?> 'stop)
          (t 'cont))))
     (setq curr (current-indentation))
-    (cond
-     ((and beg (/= beg curr) (/= curr 0))
-      (cons curr offs))
-     (t offs))))
+    (cons
+     (cond
+      ((and beg (/= beg curr) (/= curr 0))
+       (cons curr offs))
+      (t offs))
+     last-token)))
 
 (defun hyai-search-vertical (limit)
   (let (result)
@@ -258,7 +263,7 @@
     (hyai-process-syntax-backward
      (lambda (syn c)
        (cl-case syn
-         (?\s (when (hyai-beginning-of-line-p)
+         (?\s (when (hyai-botp)
                 (setq result (current-column)))
               'cont)
          (?\( (backward-char)
@@ -268,8 +273,8 @@
                ((= c ?\{) (setq result (current-indentation))))
               'stop)
          (?. (backward-char)
-             (if (hyai-beginning-of-line-p)
-                    (progn (setq result (current-column)) 'stop)
+             (if (hyai-botp)
+                 (progn (setq result (current-column)) 'stop)
                (setq result nil)
                'next))
          (?> (backward-char)
@@ -306,7 +311,7 @@
   (skip-syntax-backward " >")
   (current-indentation))
 
-(defun hyai-beginning-of-line-p ()
+(defun hyai-botp ()
   (= (current-column) (current-indentation)))
 
 (defun hyai-grab-syntax-forward (sc)

@@ -573,6 +573,18 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(0)"
 
+  Scenario: After then line
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = do
+        if foo
+            then bar
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(13)"
+
   Scenario: After <- line
     Given the buffer is empty
     When I insert:
