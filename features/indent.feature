@@ -640,3 +640,13 @@ Feature: hyai indent
     """
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4 8 0)"
+
+  Scenario: In list comprehension
+    Given the buffer is empty
+    When I insert:
+    """
+    foo = let xy = [ (x, y) | x <- [1, 2, 3],
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(26)"

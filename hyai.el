@@ -108,7 +108,7 @@
              (list (+ (current-indentation) hyai-basic-offset)))))
 
       (?. (let* ((off1 (hyai-previous-offset))
-                 (off2 (hyai-search-comma-bracket ?,)))
+                 (off2 (hyai-search-comma-bracket (char-before))))
             (list (or (and off2
                            (progn
                              (forward-char)
@@ -273,6 +273,12 @@
          (?\s (when (hyai-botp)
                 (setq result (current-column)))
               'cont)
+         (?_ (if (and (= origin ?,)
+                      (string= (hyai-grab-syntax-backward "_") "|"))
+                 (progn
+                   (setq result (current-column))
+                   'stop)
+               'cont))
          (?\( (backward-char)
               (cond
                ((null result) (setq result (current-column)))
