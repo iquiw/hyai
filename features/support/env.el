@@ -15,6 +15,7 @@
 (require 'espuds)
 (require 'ert)
 (require 'haskell-mode)
+(require 'haskell-font-lock)
 
 (Setup
  (defvar hyai-test-candidates-output)

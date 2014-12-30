@@ -3,6 +3,30 @@ Feature: hyai indent
   As an Emacs user
   I want to indent code automatically
 
+  Scenario: Beginning of buffer
+    Given the buffer is empty
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    module Main where
+    """
+    And I place the cursor before "module"
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    
+    module Main where
+    """
+    And I place the cursor before "module"
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0)"
+
   Scenario: After do
     Given the buffer is empty
     When I insert:

@@ -31,9 +31,11 @@
 (defun hyai-indent-candidates (head)
   (save-excursion
     (skip-syntax-backward " >")
-    (or (save-excursion (hyai-indent-candidates-from-current head))
-        (save-excursion (hyai-indent-candidates-from-previous))
-        (save-excursion (hyai-indent-candidates-from-backward)))))
+    (if (bobp)
+        '(0)
+      (or (save-excursion (hyai-indent-candidates-from-current head))
+          (save-excursion (hyai-indent-candidates-from-previous))
+          (save-excursion (hyai-indent-candidates-from-backward))))))
 
 (defun hyai-indent-candidates-from-current (head)
   (pcase head
