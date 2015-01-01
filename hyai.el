@@ -39,6 +39,7 @@
 
 (defun hyai-indent-candidates-from-current (head)
   (pcase head
+    (`"module" '(0))
     (`"where" (if (hyai-search-token-backward nil '("where"))
                   (list (+ (current-indentation) hyai-basic-offset))
                 (list (+ (current-indentation) hyai-where-offset))))

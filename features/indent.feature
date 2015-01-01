@@ -8,6 +8,7 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(0)"
 
+  Scenario: Before module
     Given the buffer is empty
     When I insert:
     """
@@ -21,6 +22,16 @@ Feature: hyai indent
     When I insert:
     """
     
+    module Main where
+    """
+    And I place the cursor before "module"
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    {-# LANGUAGE OverloadedStrings #-}
     module Main where
     """
     And I place the cursor before "module"
