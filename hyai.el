@@ -116,7 +116,8 @@
                            (progn
                              (forward-char)
                              (skip-syntax-forward " ")
-                             (current-column)))
+                             (unless (eolp)
+                               (current-column))))
                       off1))))
 
       (?\( (cl-case (char-before)
