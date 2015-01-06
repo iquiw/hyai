@@ -23,19 +23,22 @@
          (indents (hyai-indent-candidates head))
          (nexts (when (eq this-command 'indent-for-tab-command)
                   (cdr (member offset indents)))))
-    (when indents
-      (indent-line-to (car (or nexts indents)))
-      (when (> cc offset)
-        (forward-char (- cc offset))))))
+    (if indents
+        (indent-line-to (car (or nexts indents)))
+      (setq offset 0))
+    (when (> cc offset)
+      (forward-char (- cc offset)))))
 
 (defun hyai-indent-candidates (head)
-  (save-excursion
-    (skip-syntax-backward " >")
-    (if (bobp)
-        '(0)
-      (or (save-excursion (hyai-indent-candidates-from-current head))
-          (save-excursion (hyai-indent-candidates-from-previous))
-          (save-excursion (hyai-indent-candidates-from-backward))))))
+  (if (member head '("{-" "--"))
+      '()
+    (save-excursion
+      (skip-syntax-backward " >")
+      (if (bobp)
+          '(0)
+        (or (save-excursion (hyai-indent-candidates-from-current head))
+            (save-excursion (hyai-indent-candidates-from-previous))
+            (save-excursion (hyai-indent-candidates-from-backward)))))))
 
 (defun hyai-indent-candidates-from-current (head)
   (pcase head
@@ -175,7 +178,7 @@
              (head (cl-case (char-syntax c)
                      (?w (hyai-grab-syntax-forward "w"))
                      (?_ (hyai-grab-syntax-forward "_"))
-                     (?\( (string c))
+                     (?\( (if (looking-at-p "{-") "{-" (string c)))
                      (?\) (string c))
                      (?. (string c))
                      (t ""))))
