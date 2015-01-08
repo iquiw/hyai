@@ -21,3 +21,17 @@ Feature: Indent comment
     """
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "()"
+
+  Scenario: In comment
+    Given the buffer is empty
+    When I insert:
+    """
+    {-
+      main = do
+    
+    """
+    And I press "<tab>"
+    Then current indentation is 2
+    # This is behavior of indent-relative.
+    And I press "<tab>"
+    Then current indentation is 7

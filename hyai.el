@@ -16,18 +16,20 @@
 (defconst hyai-where-offset 2)
 
 (defun hyai-indent-line ()
-  (let* ((cc (current-column))
-         (oh (hyai-current-offset-head))
-         (offset (car oh))
-         (head (cdr oh))
-         (indents (hyai-indent-candidates head))
-         (nexts (when (eq this-command 'indent-for-tab-command)
-                  (cdr (member offset indents)))))
-    (if (null indents)
-        (indent-line-to offset)
-      (indent-line-to (car (or nexts indents)))
-      (when (> cc offset)
-        (forward-char (- cc offset))))))
+  (if (hyai-in-comment-p)
+      (indent-relative)
+    (let* ((cc (current-column))
+           (oh (hyai-current-offset-head))
+           (offset (car oh))
+           (head (cdr oh))
+           (indents (hyai-indent-candidates head))
+           (nexts (when (eq this-command 'indent-for-tab-command)
+                    (cdr (member offset indents)))))
+      (if (null indents)
+          (indent-line-to offset)
+        (indent-line-to (car (or nexts indents)))
+        (when (> cc offset)
+          (forward-char (- cc offset)))))))
 
 (defun hyai-indent-candidates (head)
   (if (member head '("{-" "--"))
@@ -333,6 +335,9 @@
 
 (defun hyai-botp ()
   (= (current-column) (current-indentation)))
+
+(defun hyai-in-comment-p ()
+  (nth 4 (syntax-ppss)))
 
 (defun hyai-grab-syntax-forward (sc)
   (buffer-substring-no-properties
