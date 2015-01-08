@@ -16,7 +16,7 @@
 (defconst hyai-where-offset 2)
 
 (defun hyai-indent-line ()
-  (if (hyai-in-comment-p)
+  (if (hyai-in-nestable-comment-p)
       (indent-relative)
     (let* ((cc (current-column))
            (oh (hyai-current-offset-head))
@@ -336,8 +336,8 @@
 (defun hyai-botp ()
   (= (current-column) (current-indentation)))
 
-(defun hyai-in-comment-p ()
-  (nth 4 (syntax-ppss)))
+(defun hyai-in-nestable-comment-p ()
+  (numberp (nth 4 (syntax-ppss))))
 
 (defun hyai-grab-syntax-forward (sc)
   (buffer-substring-no-properties

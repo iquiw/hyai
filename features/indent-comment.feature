@@ -2,7 +2,7 @@ Feature: Indent comment
   In order to write comment efficiently
   An Emacs user will need not to indent comments
 
-  Scenario: Before comment
+  Scenario: Before comment start
     Given the buffer is empty
     When I insert:
     """
@@ -35,3 +35,14 @@ Feature: Indent comment
     # This is behavior of indent-relative.
     And I press "<tab>"
     Then current indentation is 7
+
+    Given the buffer is empty
+    When I insert:
+    """
+    module Foo
+        (
+          --
+    """
+    And I press "<tab>"
+    Then current indentation is 6
+    Then current column is 6
