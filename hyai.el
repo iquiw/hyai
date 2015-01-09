@@ -27,7 +27,9 @@
       (forward-line 0)
       (indent-line-to (save-excursion
                         (goto-char (nth 8 (syntax-ppss)))
-                        (current-column))))
+                        (current-column)))
+      (when (> cc offset)
+        (forward-char (- cc offset))))
      ((and in-comment (not (string= head '"{-")))
       (indent-relative))
      (t

@@ -56,3 +56,4 @@ Feature: Indent comment
     """
     And I press "<tab>"
     Then current indentation is 3
+    Then current column is 5
