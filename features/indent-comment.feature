@@ -46,3 +46,13 @@ Feature: Indent comment
     And I press "<tab>"
     Then current indentation is 6
     Then current column is 6
+
+    Given the buffer is empty
+    When I insert:
+    """
+       {-
+          foo = bar
+    -}
+    """
+    And I press "<tab>"
+    Then current indentation is 3
