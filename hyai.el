@@ -50,7 +50,7 @@
       '()
     (save-excursion
       (forward-line 0)
-      (skip-syntax-backward " >")
+      (hyai-skip-space-backward)
       (if (bobp)
           '(0)
         (or (save-excursion (hyai-indent-candidates-from-current head))
@@ -321,6 +321,17 @@
          (t 'cont))))
     result))
 
+(defun hyai-skip-space-backward ()
+  (hyai-process-syntax-backward
+   (lambda (syn c)
+     (cl-case syn
+       (?\s (skip-syntax-backward " ")
+            'next)
+       (?> (backward-char)
+           (skip-syntax-backward " ")
+           'next)
+       (t 'stop)))))
+
 (defun hyai-process-syntax-backward (callback &optional limit)
   (setq limit (or limit 0))
   (let ((res 'cont))
@@ -328,16 +339,22 @@
                 (> (point) limit)
                 (null (bobp)))
       (let* ((c (char-before))
-             (syn (char-syntax c)))
-        (setq res (funcall callback syn c))
-        (when (eq res 'cont)
-          (condition-case nil
-              (cl-case syn
-                (?> (backward-char))
-                (?\) (backward-sexp))
-                (?\" (backward-sexp))
-                (t (skip-syntax-backward (string syn))))
-            (error (setq res 'stop))))))))
+             (syn (char-syntax c))
+             (ppss (syntax-ppss))
+             (comm-type (nth 4 ppss)))
+        (cond
+         ((numberp comm-type) (goto-char (nth 8 ppss)))
+         (comm-type (re-search-backward "--"))
+         (t
+          (setq res (funcall callback syn c))
+          (when (eq res 'cont)
+            (condition-case nil
+                (cl-case syn
+                  (?> (backward-char))
+                  (?\) (backward-sexp))
+                  (?\" (backward-sexp))
+                  (t (skip-syntax-backward (string syn))))
+              (error (setq res 'stop))))))))))
 
 (defun hyai-search-context ()
   (when (re-search-backward "^\\([^#[:space:]]+\\)" nil t)
