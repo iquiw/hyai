@@ -105,3 +105,14 @@ Feature: Indent comment
     And I press "<tab>"
     Then current indentation is 6
     Then current column is 9
+
+  Scenario: Across comment
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+        -- foo
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
