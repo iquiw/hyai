@@ -106,12 +106,66 @@ Feature: Indent comment
     Then current indentation is 6
     Then current column is 9
 
-  Scenario: Across comment
+  Scenario: Across one line comment
     Given the buffer is empty
     When I insert:
     """
     main = do
         -- foo
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do -- foo
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do -- foo
+        -- bar
+        -- baz
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
+  Scenario: Across nestable comment
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+        {- foo -}
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do {- foo
+        bar
+        -}
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+    {- foo
+       bar
+    -}
     
     """
     And I call hyai-indent-candidates at the current point
