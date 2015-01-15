@@ -26,7 +26,7 @@
      ((string= head "-}")
       (forward-line 0)
       (indent-line-to (save-excursion
-                        (hyai-skip-comment-backward (syntax-ppss))
+                        (hyai-goto-comment-start)
                         (current-column)))
       (when (> cc offset)
         (forward-char (- cc offset))))
@@ -343,10 +343,10 @@
              (ppss (syntax-ppss))
              (comm-type (nth 4 ppss)))
         (cond
-         (comm-type (hyai-skip-comment-backward ppss))
+         (comm-type (hyai-goto-comment-start ppss))
          ((and (= c ?\}) (looking-back "-}"))
           (backward-char)
-          (hyai-skip-comment-backward ppss))
+          (hyai-goto-comment-start ppss))
          (t
           (setq res (funcall callback syn c))
           (when (eq res 'cont)
@@ -374,7 +374,7 @@
 (defun hyai-in-comment-p ()
   (nth 4 (syntax-ppss)))
 
-(defun hyai-skip-comment-backward (&optional ppss)
+(defun hyai-goto-comment-start (&optional ppss)
   (let ((p (nth 8 (or ppss (syntax-ppss)))))
     (when p (goto-char p))))
 
