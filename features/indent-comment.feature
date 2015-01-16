@@ -170,3 +170,15 @@ Feature: Indent comment
     """
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4)"
+
+  Scenario: Keyword in comment
+    Given the buffer is empty
+    When I insert:
+    """
+    main = foo {-
+    module Foo -}
+           foo
+    (
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(7 11 0)"
