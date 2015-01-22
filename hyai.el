@@ -124,7 +124,11 @@
              (let ((offset (hyai-search-token-backward nil '("case"))))
                (when offset
                  (mapcar (lambda (x) (+ x hyai-basic-offset))
-                         (list (current-indentation) offset)))))))
+                         (list (current-indentation) offset)))))
+            (`"then"
+             (hyai-offsetnize
+              (hyai-search-token-backward nil '("if"))
+              hyai-basic-offset))))
 
       (?_ (pcase (hyai-grab-syntax-backward "_")
             (`"="
