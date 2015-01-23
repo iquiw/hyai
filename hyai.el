@@ -66,7 +66,11 @@
 
     (`"then" (hyai-offsetnize (hyai-search-token-backward nil '("if"))
                               hyai-basic-offset))
-    (`"else" (hyai-offsetnize (hyai-search-token-backward nil '("then"))))
+    (`"else" (let ((offset (hyai-search-token-backward nil '("then"))))
+               (hyai-offsetnize
+                (if (equal offset (current-indentation))
+                    offset
+                  (hyai-search-token-backward nil '("if"))))))
 
     (`"in" (hyai-offsetnize (hyai-search-token-backward nil '("let"))))
 

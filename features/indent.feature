@@ -189,6 +189,17 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(8)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = do
+        if foo then
+            bar
+    else
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
   Scenario: Before in
     Given the buffer is empty
     When I insert:
@@ -654,6 +665,14 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(8)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = if foo then
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(13)"
 
   Scenario: After <- line
     Given the buffer is empty
