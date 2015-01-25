@@ -166,6 +166,18 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4 13)"
 
+  Scenario: After then
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = do
+        if foo
+            then
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(12)"
+
   Scenario: Before then
     Given the buffer is empty
     When I insert:
