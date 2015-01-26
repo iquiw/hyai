@@ -129,7 +129,7 @@
                (when offset
                  (mapcar (lambda (x) (+ x hyai-basic-offset))
                          (list (current-indentation) offset)))))
-            (`"then"
+            ((or `"then" `"else")
              (if (hyai-botp)
                  (list (+ (current-column) hyai-basic-offset))
                (hyai-offsetnize
