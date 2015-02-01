@@ -742,6 +742,18 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4 8 0)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    import Data.Text
+    
+    main = do
+        foobar ()
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4 8 0)"
+
   Scenario: In list comprehension
     Given the buffer is empty
     When I insert:

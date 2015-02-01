@@ -372,10 +372,7 @@
   (catch 'result
     (while (re-search-backward "^\\([^#[:space:]]+\\)" nil t)
       (unless (hyai-in-comment-p)
-        (let ((ctx (match-string-no-properties 1)))
-          (when (member ctx '("data" "class" "import"
-                              "module" "newtype" "type"))
-            (throw 'result ctx)))))))
+        (throw 'result (match-string-no-properties 1))))))
 
 (defun hyai-previous-offset ()
   (skip-syntax-backward " >")
