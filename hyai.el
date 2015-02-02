@@ -37,10 +37,12 @@
       (indent-relative))
      (t
       (setq indents (hyai-indent-candidates head))
-      (setq nexts (when (eq this-command 'indent-for-tab-command)
-                    (cdr (member offset indents))))
       (if (null indents)
           (indent-line-to offset)
+        (when (hyai-previous-line-empty-p)
+          (setq indents (hyai-zero-first indents)))
+        (setq nexts (when (eq this-command 'indent-for-tab-command)
+                    (cdr (member offset indents))))
         (indent-line-to (car (or nexts indents)))
         (when (> cc offset)
           (forward-char (- cc offset))))))))
@@ -404,6 +406,16 @@
    ((listp obj) (mapcar (lambda (x) (+ x plus)) obj))
    ((numberp obj) (list (+ obj plus)))
    (t nil)))
+
+(defun hyai-zero-first (indents)
+  (if (member 0 indents)
+      (cons 0 (cl-remove 0 indents))
+    indents))
+
+(defun hyai-previous-line-empty-p ()
+  (save-excursion
+    (and (>= (forward-line -1) 0)
+         (looking-at-p "^[[:space:]]*$"))))
 
 ;;;###autoload
 (define-minor-mode hyai-mode
