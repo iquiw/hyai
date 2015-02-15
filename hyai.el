@@ -40,7 +40,7 @@
       (if (null indents)
           (indent-line-to offset)
         (when (hyai-previous-line-empty-p)
-          (setq indents (hyai-zero-first indents)))
+          (setq indents (hyai-cycle-zero-first indents)))
         (setq nexts (when (eq this-command 'indent-for-tab-command)
                     (cdr (member offset indents))))
         (indent-line-to (car (or nexts indents)))
@@ -201,7 +201,7 @@
     (forward-line 0)
     (skip-syntax-forward " ")
     (if (eobp)
-        '(0 . "")
+        (cons (current-column) "")
       (let* ((c (char-after))
              (cc (current-column))
              (head (cl-case (char-syntax c)
@@ -407,10 +407,17 @@
    ((numberp obj) (list (+ obj plus)))
    (t nil)))
 
-(defun hyai-zero-first (indents)
-  (if (member 0 indents)
-      (cons 0 (cl-remove 0 indents))
-    indents))
+(defun hyai-cycle-zero-first (indents)
+  (or
+   (catch 'result
+     (let (lst i)
+       (while indents
+         (setq i (car indents))
+         (if (= i 0)
+             (throw 'result (nconc indents (nreverse lst)))
+           (setq lst (cons i lst)))
+         (setq indents (cdr indents)))))
+   indents))
 
 (defun hyai-previous-line-empty-p ()
   (save-excursion

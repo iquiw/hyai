@@ -86,3 +86,56 @@ Feature: hyai indent line
     When I press "<tab>"
     Then current indentation is 0
     Then current column is 3
+
+  Scenario: newline and indent after normal line
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+        foobar
+    """
+    And I press "RET"
+    Then current indentation is 4
+    And I press "<tab>"
+    Then current indentation is 8
+    When I press "<tab>"
+    Then current indentation is 0
+
+  Scenario: newline and indent after empty line
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+        foobar
+    
+    """
+    And I press "RET"
+    Then current indentation is 0
+    And I press "<tab>"
+    Then current indentation is 4
+    When I press "<tab>"
+    Then current indentation is 8
+    When I press "<tab>"
+    Then current indentation is 0
+
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+        foobar
+      where
+        barbaz = do
+            qux
+    
+    
+    """
+    And I press "RET"
+    Then current indentation is 0
+    And I press "<tab>"
+    Then current indentation is 4
+    When I press "<tab>"
+    Then current indentation is 8
+    When I press "<tab>"
+    Then current indentation is 12
+    And I press "<tab>"
+    Then current indentation is 0

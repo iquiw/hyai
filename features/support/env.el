@@ -22,6 +22,7 @@
  (switch-to-buffer
   (get-buffer-create "*hyai*"))
  (haskell-mode)
+ (global-set-key (kbd "RET") 'newline-and-indent)
  (turn-on-hyai))
 
 (Before
