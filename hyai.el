@@ -1,6 +1,6 @@
 ;;; hyai.el --- Haskell Yet Another Indentation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014 by Iku Iwasa
+;; Copyright (C) 2014-2015 by Iku Iwasa
 
 ;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
 ;; URL:       https://github.com/iquiw/hyai
