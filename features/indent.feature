@@ -763,3 +763,23 @@ Feature: hyai indent
     """
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(26)"
+
+  Scenario: Hanging lambda
+    Given the buffer is empty
+    When I insert:
+    """
+    foo = alloca 10 $ \a ->
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4 6)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = alloca 10 $ \a ->
+        alloca 20 $ \b ->
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4 8)"
