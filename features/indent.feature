@@ -166,6 +166,15 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4 13)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = case baz of
+    [
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4 13)"
+
   Scenario: After then
     Given the buffer is empty
     When I insert:

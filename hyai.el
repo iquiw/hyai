@@ -83,7 +83,7 @@
            (setq offset (current-column))
            (list (+ offset hyai-basic-offset))))))
 
-    ((or `"{" `"[")
+    (`"{"
      (list (+ (hyai-previous-offset) hyai-basic-offset)))
 
     (`")"
