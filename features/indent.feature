@@ -538,6 +538,16 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(7)"
 
+  Scenario: Before =>
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar :: (Monad m)
+    =>
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(7)"
+
   Scenario: After =
     Given the buffer is empty
     When I insert:

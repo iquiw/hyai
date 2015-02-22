@@ -98,8 +98,9 @@
     (`","
      (hyai-offsetnize (hyai-search-comma-bracket ?,)))
 
-    (`"->" (or (hyai-offsetnize (hyai-search-token-backward '("::") nil))
-               (list hyai-basic-offset)))
+    ((or `"->" `"=>")
+     (or (hyai-offsetnize (hyai-search-token-backward '("::") nil))
+         (list hyai-basic-offset)))
 
     (`"|" (let (limit ctx)
             (save-excursion
