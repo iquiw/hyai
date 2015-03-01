@@ -139,7 +139,7 @@
                 (hyai-search-token-backward nil '("if"))
                 hyai-basic-offset)))))
 
-      (?_ (pcase (hyai-grab-syntax-backward "_")
+      (?. (pcase (hyai-grab-syntax-backward ".")
             (`"="
              (list (+ (current-indentation) hyai-basic-offset)))
             (`"->"
@@ -147,17 +147,17 @@
                    (off2 (current-indentation)))
                (if off1
                    (list (+ off2 hyai-basic-offset) off1)
-                 (list off2 (+ off2 hyai-basic-offset)))))))
-
-      (?. (let* ((off1 (hyai-previous-offset))
-                 (off2 (hyai-search-comma-bracket (char-before))))
-            (list (or (and off2
-                           (progn
-                             (forward-char)
-                             (skip-syntax-forward " ")
-                             (unless (eolp)
-                               (current-column))))
-                      off1))))
+                 (list off2 (+ off2 hyai-basic-offset)))))
+            (","
+             (let* ((off1 (hyai-previous-offset))
+                    (off2 (hyai-search-comma-bracket ?,)))
+               (list (or (and off2
+                              (progn
+                                (forward-char)
+                                (skip-syntax-forward " ")
+                                (unless (eolp)
+                                  (current-column))))
+                         off1))))))
 
       (?\( (cl-case (char-before)
              (?\( (list (+ (current-column) 1)))
@@ -213,11 +213,11 @@
              (cc (current-column))
              (head (cl-case (char-syntax c)
                      (?w (hyai-grab-syntax-forward "w"))
-                     (?_ (if (looking-at-p "-}") "-}"
-                           (hyai-grab-syntax-forward "_")))
+                     (?_ (hyai-grab-syntax-forward "_"))
                      (?\( (if (looking-at-p "{-") "{-" (string c)))
                      (?\) (string c))
-                     (?. (string c))
+                     (?. (if (looking-at-p "-}") "-}"
+                           (hyai-grab-syntax-forward ".")))
                      (t ""))))
         (cons cc head)))))
 
@@ -236,9 +236,9 @@
                    (progn (setq result (current-column))
                           'stop)
                  'next)))
-         (?_ (if (null symbols)
-                 (skip-syntax-backward "_")
-               (if (member (hyai-grab-syntax-backward "_") symbols)
+         (?. (if (null symbols)
+                 (skip-syntax-backward ".")
+               (if (member (hyai-grab-syntax-backward ".") symbols)
                    (progn (setq result (current-column))
                           'stop)
                  'next)))
@@ -259,8 +259,8 @@
               ((member last-token '("let" "then" "else"))
                (push (or prev curr) offs) 'stop)
               (t 'next)))
-         (?_ (setq curr (current-column))
-             (setq last-token (hyai-grab-syntax-backward "_"))
+         (?. (setq curr (current-column))
+             (setq last-token (hyai-grab-syntax-backward "."))
              (when (member last-token '("=" "->" "<-"))
                (push (or prev curr) offs)
                (setq beg (current-column)))
@@ -283,8 +283,8 @@
   (let (result)
     (hyai-process-syntax-backward
      (lambda (syn c)
-       (when (= syn ?_)
-         (let ((s (hyai-grab-syntax-backward "_")))
+       (when (= syn ?.)
+         (let ((s (hyai-grab-syntax-backward ".")))
            (when (string= s "|")
              (push (current-column) result))
            'next))
@@ -296,8 +296,8 @@
   (let (result)
     (hyai-process-syntax-backward
      (lambda (syn c)
-       (if (= syn ?_)
-         (let ((s (hyai-grab-syntax-backward "_")) offset)
+       (if (= syn ?.)
+         (let ((s (hyai-grab-syntax-backward ".")) offset)
            (setq offset (current-column))
            (cond
             ((or (string= s "|")
@@ -319,7 +319,7 @@
          (?\s (setq result (current-column))
               (skip-syntax-backward " ")
               'next)
-         (?_ (if (string= (hyai-grab-syntax-backward "_") "=")
+         (?. (if (string= (hyai-grab-syntax-backward ".") "=")
                  'stop
                'next))
          (t 'cont))))
@@ -333,23 +333,21 @@
          (?\s (when (hyai-botp)
                 (setq result (current-column)))
               'cont)
-         (?_ (if (and (= origin ?,)
-                      (string= (hyai-grab-syntax-backward "_") "|"))
-                 (progn
-                   (setq result (current-column))
-                   'stop)
-               'cont))
          (?\( (backward-char)
               (cond
                ((null result) (setq result (current-column)))
                ((= origin ?,) (setq result (current-column)))
                ((= c ?\{) (setq result (current-indentation))))
               'stop)
-         (?. (backward-char)
-             (if (hyai-botp)
-                 (progn (setq result (current-column)) 'stop)
-               (setq result nil)
-               'next))
+         (?. (pcase (hyai-grab-syntax-backward ".")
+               (`"|" (if (= origin ?,)
+                         (progn (setq result (current-column)) 'stop)
+                       'next))
+               (`","
+                (if (hyai-botp)
+                    (progn (setq result (current-column)) 'stop)
+                  (setq result nil) 'next))
+               (_ 'next)))
          (?> (backward-char)
              (skip-syntax-backward " ")
              'next)
