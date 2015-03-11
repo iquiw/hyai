@@ -1,6 +1,7 @@
-Feature: Indent comment
+Feature: hyai indent comment
   In order to write comment efficiently
-  An Emacs user will need not to indent comments
+  As an Emacs user
+  I want not to indent comment start, to indent relative in comment
 
   Scenario: Comment start
     Given the buffer is empty
