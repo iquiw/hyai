@@ -139,3 +139,32 @@ Feature: hyai indent line
     Then current indentation is 12
     And I press "<tab>"
     Then current indentation is 0
+
+  Scenario: multiline string
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = "baz\
+    """
+    And I press "RET"
+    Then current indentation is 0
+    And I press "<tab>"
+    Then current indentation is 0
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = "baz\
+             \qux\
+    """
+    And I press "RET"
+    Then current indentation is 0
+    And I press "<tab>"
+    Then current indentation is 0
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = "baz\
+             \qux\
+    """

@@ -17,7 +17,7 @@
 
 (defun hyai-indent-line ()
   (let* ((cc (current-column))
-         (in-comment (hyai-in-comment-p))
+         (ppss (syntax-ppss))
          (oh (hyai-current-offset-head))
          (offset (car oh))
          (head (cdr oh))
@@ -31,10 +31,10 @@
       (when (> cc offset)
         (forward-char (- cc offset))))
      ((member head '("{-" "--"))
-      (unless in-comment
+      (unless (hyai-in-comment-p ppss)
         (indent-line-to offset)))
-     (in-comment
-      (indent-relative))
+     ((hyai-in-comment-p ppss) (indent-relative))
+     ((hyai-in-string-p ppss) nil)
      (t
       (setq indents (hyai-indent-candidates head))
       (if (null indents)
@@ -404,8 +404,11 @@
 (defun hyai-botp ()
   (= (current-column) (current-indentation)))
 
-(defun hyai-in-comment-p ()
-  (nth 4 (syntax-ppss)))
+(defun hyai-in-string-p (&optional ppss)
+  (nth 3 (or ppss (syntax-ppss))))
+
+(defun hyai-in-comment-p (&optional ppss)
+  (nth 4 (or ppss (syntax-ppss))))
 
 (defun hyai-goto-comment-start (&optional ppss)
   (let ((p (nth 8 (or ppss (syntax-ppss)))))
