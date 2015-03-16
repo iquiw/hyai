@@ -388,7 +388,9 @@
                   (?> (backward-char))
                   (?\) (backward-sexp))
                   (?\" (backward-sexp))
-                  (t (skip-syntax-backward (string syn))))
+                  (t (if (= c ?')
+                         (backward-sexp)
+                       (skip-syntax-backward (string syn)))))
               (error (setq res 'stop))))))))))
 
 (defun hyai-search-context ()
