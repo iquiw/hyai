@@ -99,8 +99,13 @@
      (hyai-offsetnize (hyai-search-comma-bracket ?,)))
 
     ((or `"->" `"=>")
-     (or (hyai-offsetnize (hyai-search-token-backward '("::") nil))
-         (list hyai-basic-offset)))
+     (let (limit)
+       (or (hyai-offsetnize
+            (save-excursion
+              (prog1 (hyai-search-token-backward '("::") nil)
+                (setq limit (point)))))
+           (hyai-offsetnize (hyai-search-vertical limit t))
+           (list hyai-basic-offset))))
 
     (`"|" (let (limit ctx)
             (save-excursion
@@ -279,16 +284,22 @@
       (t offs))
      last-token)))
 
-(defun hyai-search-vertical (limit)
-  (let (result)
+(defun hyai-search-vertical (limit &optional after-blank)
+  (let (result prev)
     (hyai-process-syntax-backward
      (lambda (syn c)
-       (when (= syn ?.)
-         (let ((s (hyai-grab-syntax-backward ".")))
-           (when (string= s "|")
-             (push (current-column) result))
-           'next))
-       'cont)
+       (cl-case syn
+         (?\s
+          (if after-blank
+                 (progn (setq prev (current-column))
+                        (skip-syntax-backward " ")
+                        'next)
+               'cont))
+         (?. (let ((s (hyai-grab-syntax-backward ".")))
+               (when (string= s "|")
+                 (push (or prev (current-column)) result))
+               'next))
+         (t 'cont)))
      limit)
     (cl-remove-duplicates result)))
 

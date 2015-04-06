@@ -538,6 +538,16 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(7)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    foo xs = case xs of
+        (x:xs') | x == 'a'
+    ->
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(14)"
+
   Scenario: Before =>
     Given the buffer is empty
     When I insert:
