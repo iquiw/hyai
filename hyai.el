@@ -447,13 +447,12 @@
 (defun hyai-cycle-zero-first (indents)
   (or
    (catch 'result
-     (let (lst i)
-       (while indents
-         (setq i (car indents))
+     (let (lst i (rest indents))
+       (while (setq i (car rest))
          (if (= i 0)
-             (throw 'result (nconc indents (nreverse lst)))
-           (setq lst (cons i lst)))
-         (setq indents (cdr indents)))))
+             (throw 'result (nconc rest (nreverse lst)))
+           (push i lst))
+         (setq rest (cdr rest)))))
    indents))
 
 (defun hyai-previous-line-empty-p ()

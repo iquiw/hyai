@@ -106,6 +106,25 @@ Feature: hyai indent line
     When I insert:
     """
     main = do
+    
+    """
+    And I press "RET"
+    Then current indentation is 4
+
+    Given the buffer is empty
+    When I insert:
+    """
+    main = foo
+      where
+    
+    """
+    And I press "RET"
+    Then current indentation is 4
+
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
         foobar
     
     """
