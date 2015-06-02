@@ -23,7 +23,7 @@
   (get-buffer-create "*hyai*"))
  (haskell-mode)
  (global-set-key (kbd "RET") 'newline-and-indent)
- (turn-on-hyai))
+ (hyai-mode))
 
 (Before
  (setq hyai-test-candidates-output nil))

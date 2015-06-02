@@ -468,14 +468,5 @@
   (when hyai-mode
     (set (make-local-variable 'indent-line-function) 'hyai-indent-line)))
 
-;;;###autoload
-(defun turn-on-hyai ()
-  (interactive)
-  (hyai-mode 1))
-
-(defun turn-off-hyai ()
-  (interactive)
-  (hyai-mode 0))
-
 (provide 'hyai)
 ;;; hyai.el ends here
