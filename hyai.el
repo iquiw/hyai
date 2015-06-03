@@ -178,13 +178,14 @@
                     '(0))))))))
 
 (defun hyai-indent-candidates-from-backward ()
-  (let* ((off-tok (hyai-possible-offsets))
-         (offs1 (car off-tok))
-         (token (cdr off-tok))
+  (let* ((offs-tok (hyai-possible-offsets))
+         (offs1 (car offs-tok))
+         (token (cdr offs-tok))
          offs2
-         (offset (current-indentation))
+         (off-head (hyai-current-offset-head))
+         (offset (car off-head))
          (minoff (or (car offs1) offset))
-         (poffset 0))
+         (poffset minoff))
     (if (and offs1 (member token '("(" "[" "{" "then")))
         offs1
 
@@ -195,12 +196,17 @@
      (unless offs1
        (push (+ offset hyai-basic-offset) offs1)
        (push offset offs1))
+
+     (setq token (cdr off-head))
      (while (and (> offset hyai-basic-offset)
                  (>= (forward-line -1) 0))
-       (when (and (< offset minoff) (/= offset poffset))
+       (when (and (< offset minoff) (< offset poffset)
+                  (not (member token '("|" "->"))))
          (push offset offs2)
          (setq poffset offset))
-       (setq offset (current-indentation)))
+       (setq off-head (hyai-current-offset-head))
+       (setq offset (car off-head))
+       (setq token (cdr off-head)))
      (when (and (= offset hyai-basic-offset)
                 (< offset minoff))
        (push offset offs2))

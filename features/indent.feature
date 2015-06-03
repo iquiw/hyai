@@ -802,6 +802,19 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4 8 0)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    foo x y = case x of
+        True | y == 'a'
+               -> putStrLn "a"
+             | y == 'b'
+               -> putStrLn "b"
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(14 0 4)"
+
   Scenario: In list comprehension
     Given the buffer is empty
     When I insert:
