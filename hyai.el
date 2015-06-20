@@ -408,7 +408,7 @@
 (defun hyai-search-context ()
   (catch 'result
     (while (re-search-backward "^\\([^#[:space:]]+\\)" nil t)
-      (unless (hyai-in-comment-p)
+      (unless (save-match-data (hyai-in-comment-p))
         (throw 'result (match-string-no-properties 1))))))
 
 (defun hyai-previous-offset ()
