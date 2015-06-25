@@ -207,7 +207,10 @@
        (push offset offs2))
      (when (< 0 minoff)
        (push 0 offs2))
-     (append offs1 offs2))))
+     (let ((result (append offs1 offs2)))
+       (if (hyai-type-signature-p)
+           (hyai-cycle-zero-first result)
+         result)))))
 
 (defun hyai-current-offset-head ()
   (save-excursion
@@ -267,7 +270,7 @@
               (t 'next)))
          (?. (setq curr (current-column))
              (setq last-token (hyai-grab-syntax-backward "."))
-             (when (member last-token '("=" "->" "<-"))
+             (when (member last-token '("=" "->" "<-" "::"))
                (push (or prev curr) offs)
                (setq beg (current-column)))
              'next)
@@ -460,6 +463,9 @@
   (save-excursion
     (and (>= (forward-line -1) 0)
          (looking-at-p "^[[:space:]]*$"))))
+
+(defun hyai-type-signature-p ()
+  (looking-at-p "^[[:word:][:punct:]]*[[:space:]]*::"))
 
 ;;;###autoload
 (define-minor-mode hyai-mode

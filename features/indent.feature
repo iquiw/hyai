@@ -844,3 +844,42 @@ Feature: hyai indent
     """
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4 8)"
+
+  Scenario: After type signature
+    Given the buffer is empty
+    When I insert:
+    """
+    main :: IO ()
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0 8)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    sort :: [a] -> [a]
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0 8 15)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar :: (Monad m) => a -> m a
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0 10 28)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar :: Text
+           -> (Char -> Char)
+           -> Text
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0 10)"
