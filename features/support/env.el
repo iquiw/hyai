@@ -11,6 +11,9 @@
 
 (add-to-list 'load-path hyai-root-path)
 
+(require 'undercover)
+(undercover "hyai.el")
+
 (require 'hyai)
 (require 'espuds)
 (require 'ert)
