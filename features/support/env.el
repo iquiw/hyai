@@ -12,7 +12,9 @@
 (add-to-list 'load-path hyai-root-path)
 
 (require 'undercover)
-(undercover "hyai.el")
+(if (equal (getenv "UNDERCOVER_SEND_REPORT") "1")
+    (undercover "hyai.el")
+  (undercover "hyai.el" (:send-report nil)))
 
 (require 'hyai)
 (require 'espuds)
