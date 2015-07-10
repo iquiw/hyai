@@ -159,6 +159,23 @@ Feature: hyai indent line
     And I press "<tab>"
     Then current indentation is 0
 
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+        foobar
+    
+        -- comment
+    """
+    And I press "RET"
+    Then current indentation is 0
+    And I press "<tab>"
+    Then current indentation is 4
+    When I press "<tab>"
+    Then current indentation is 8
+    And I press "<tab>"
+    Then current indentation is 0
+
   Scenario: multiline string
     Given the buffer is empty
     When I insert:

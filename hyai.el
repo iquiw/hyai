@@ -237,7 +237,7 @@
      (lambda (syn c)
        (cl-case syn
          (?> (if (/= (char-syntax (char-after)) ?\s)
-                 (setq res 'stop)
+                 'stop
                (backward-char)))
          (?w (if (null words)
                  (skip-syntax-backward "w")
@@ -461,8 +461,13 @@
 
 (defun hyai-previous-line-empty-p ()
   (save-excursion
-    (and (>= (forward-line -1) 0)
-         (looking-at-p "^[[:space:]]*$"))))
+    (catch 'result
+      (while (>= (forward-line -1) 0)
+        (cond
+         ((looking-at-p "^[[:space:]]*$")
+          (throw 'result t))
+         ((not (looking-at-p "^[[:space:]]*--"))
+          (throw 'result nil)))))))
 
 (defun hyai-type-signature-p ()
   (looking-at-p "^[[:word:][:punct:]]*[[:space:]]*::"))
