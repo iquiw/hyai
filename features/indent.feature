@@ -661,6 +661,19 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(16)"
 
+  Scenario: Before | in where context
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+        foo
+      where
+        foo
+    |
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(8)"
+
   Scenario: After import
     Given the buffer is empty
     When I insert:

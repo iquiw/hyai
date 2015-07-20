@@ -106,13 +106,16 @@
            (hyai--offsetnize (hyai--search-vertical limit t))
            (list hyai-basic-offset))))
 
-    (`"|" (let (limit ctx)
+    (`"|" (let (limit ctx offset)
             (save-excursion
               (setq ctx (hyai--search-context))
-              (setq limit (point)))
-            (or (if (equal ctx "data")
-                    (hyai--search-vertical-equal limit)
-                  (hyai--search-vertical limit))
+              (setq limit (point))
+              (setq offset (current-indentation)))
+            (or (cond
+                 ((equal ctx "data") (hyai--search-vertical-equal limit))
+                 ((equal ctx "where")
+                  (list (+ offset hyai-where-offset hyai-basic-offset)))
+                 (t (hyai--search-vertical limit)))
                 (list (+ (current-indentation) hyai-basic-offset)))))))
 
 (defun hyai--indent-candidates-from-previous ()
@@ -409,10 +412,23 @@
               (error (setq res 'stop))))))))))
 
 (defun hyai--search-context ()
-  (catch 'result
-    (while (re-search-backward "^\\([^#[:space:]]+\\)" nil t)
-      (unless (save-match-data (hyai--in-comment-p))
-        (throw 'result (match-string-no-properties 1))))))
+  (let (result)
+    (hyai--process-syntax-backward
+     (lambda (syn c)
+       (cl-case syn
+         (?> (cond
+              ((looking-at "^\\([^#[:space:]]+\\)")
+               (setq result (match-string-no-properties 1))
+               'stop)
+              (t 'cont)))
+         (?w (let ((token (hyai--grab-syntax-backward "w")))
+               (cond
+                ((or (bobp) (member token '("case" "where")))
+                 (setq result token)
+                 'stop)
+                (t 'cont))))
+         (t 'cont))))
+    result))
 
 (defun hyai--previous-offset ()
   (skip-syntax-backward " >")
