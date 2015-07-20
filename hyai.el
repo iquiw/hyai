@@ -241,20 +241,24 @@
        (cl-case syn
          (?> (if (/= (char-syntax (char-after)) ?\s)
                  'stop
-               (backward-char)))
-         (?w (if (null words)
-                 (skip-syntax-backward "w")
-               (if (member (hyai--grab-syntax-backward "w") words)
-                   (progn (setq result (current-column))
-                          'stop)
-                 'next)))
-         (?. (if (null symbols)
-                 (skip-syntax-backward ".")
-               (if (member (hyai--grab-syntax-backward ".") symbols)
-                   (progn (setq result (current-column))
-                          'stop)
-                 'next)))
-         (t 'cont))))
+               (backward-char)
+               'next))
+         (?w (cond
+              ((null words)
+               (skip-syntax-backward "w")
+               nil)
+              ((member (hyai--grab-syntax-backward "w") words)
+               (setq result (current-column))
+               'stop)
+              (t 'next)))
+         (?. (cond
+              ((null symbols)
+               (skip-syntax-backward ".")
+               nil)
+              ((member (hyai--grab-syntax-backward ".") symbols)
+               (setq result (current-column))
+               'stop)
+              (t 'next))))))
     result))
 
 (defun hyai--possible-offsets ()
@@ -281,8 +285,7 @@
               (setq last-token (string c))
               (push (if (= (char-syntax (char-after)) ?\s) prev curr) offs)
               'stop)
-         (?> 'stop)
-         (t 'cont))))
+         (?> 'stop))))
     (setq curr (current-indentation))
     (cons
      (cond
@@ -296,17 +299,14 @@
     (hyai--process-syntax-backward
      (lambda (syn c)
        (cl-case syn
-         (?\s
-          (if after-blank
-                 (progn (setq prev (current-column))
-                        (skip-syntax-backward " ")
-                        'next)
-               'cont))
+         (?\s (when after-blank
+                (setq prev (current-column))
+                (skip-syntax-backward " ")
+                'next))
          (?. (let ((s (hyai--grab-syntax-backward ".")))
                (when (string= s "|")
                  (push (or prev (current-column)) result))
-               'next))
-         (t 'cont)))
+               'next))))
      limit)
     (cl-remove-duplicates result)))
 
@@ -314,7 +314,7 @@
   (let (result)
     (hyai--process-syntax-backward
      (lambda (syn c)
-       (if (= syn ?.)
+       (when (= syn ?.)
          (let ((s (hyai--grab-syntax-backward ".")) offset)
            (setq offset (current-column))
            (cond
@@ -322,8 +322,7 @@
                  (= offset (current-indentation)))
              (push offset result))
             ((string= s "=") (push offset result)))
-           'next))
-       'cont)
+           'next)))
      limit)
     (cl-remove-duplicates result)))
 
@@ -339,8 +338,7 @@
               'next)
          (?. (if (string= (hyai--grab-syntax-backward ".") "=")
                  'stop
-               'next))
-         (t 'cont))))
+               'next)))))
     result))
 
 (defun hyai--search-comma-bracket (origin)
@@ -350,7 +348,7 @@
        (cl-case syn
          (?\s (when (hyai--botp)
                 (setq result (current-column)))
-              'cont)
+              nil)
          (?\( (backward-char)
               (cond
                ((null result) (setq result (current-column)))
@@ -368,8 +366,7 @@
                (_ 'next)))
          (?> (backward-char)
              (skip-syntax-backward " ")
-             'next)
-         (t 'cont))))
+             'next))))
     result))
 
 (defun hyai--skip-space-backward ()
@@ -385,7 +382,7 @@
 
 (defun hyai--process-syntax-backward (callback &optional limit)
   (setq limit (or limit 0))
-  (let ((res 'cont))
+  (let (res)
     (while (and (null (eq res 'stop))
                 (> (point) limit)
                 (null (bobp)))
@@ -400,7 +397,7 @@
           (hyai--goto-comment-start ppss))
          (t
           (setq res (funcall callback syn c))
-          (when (eq res 'cont)
+          (unless res
             (condition-case nil
                 (cl-case syn
                   (?> (backward-char))
@@ -416,18 +413,13 @@
     (hyai--process-syntax-backward
      (lambda (syn c)
        (cl-case syn
-         (?> (cond
-              ((looking-at "^\\([^#[:space:]]+\\)")
+         (?> (when (looking-at "^\\([^#[:space:]]+\\)")
                (setq result (match-string-no-properties 1))
-               'stop)
-              (t 'cont)))
+               'stop))
          (?w (let ((token (hyai--grab-syntax-backward "w")))
-               (cond
-                ((or (bobp) (member token '("case" "where")))
+               (when (or (bobp) (member token '("case" "where")))
                  (setq result token)
-                 'stop)
-                (t 'cont))))
-         (t 'cont))))
+                 'stop))))))
     result))
 
 (defun hyai--previous-offset ()
