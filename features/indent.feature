@@ -674,6 +674,27 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(8)"
 
+  Scenario: Before | in case context
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar x = case x of
+        Just y
+    |
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(8)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar x = case x of
+                   Just y
+    |
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(19)"
+
   Scenario: After import
     Given the buffer is empty
     When I insert:

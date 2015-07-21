@@ -111,12 +111,15 @@
               (setq ctx (hyai--search-context))
               (setq limit (point))
               (setq offset (current-indentation)))
-            (or (cond
-                 ((equal ctx "data") (hyai--search-vertical-equal limit))
-                 ((equal ctx "where")
-                  (list (+ offset hyai-where-offset hyai-basic-offset)))
-                 (t (hyai--search-vertical limit)))
-                (list (+ (current-indentation) hyai-basic-offset)))))))
+            (if (equal ctx "data")
+                (hyai--search-vertical-equal limit)
+              (or (save-excursion (hyai--search-vertical limit))
+                  (cond
+                   ((equal ctx "where")
+                    (list (+ offset hyai-where-offset hyai-basic-offset)))
+                   ((equal ctx "case")
+                    (list (+ (hyai--previous-offset) hyai-basic-offset)))
+                   (t (list (+ (current-indentation) hyai-basic-offset))))))))))
 
 (defun hyai--indent-candidates-from-previous ()
   (if (bobp)
