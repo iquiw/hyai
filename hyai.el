@@ -33,7 +33,7 @@
       (unless (hyai--in-comment-p ppss)
         (indent-line-to offset)))
      ((hyai--in-comment-p ppss) (indent-relative))
-     ((hyai--in-string-p ppss) nil)
+     ((hyai--in-multiline-string-p ppss) nil)
      (t
       (setq indents (hyai-indent-candidates head))
       (if (null indents)
@@ -432,8 +432,11 @@
 (defun hyai--botp ()
   (= (current-column) (current-indentation)))
 
-(defun hyai--in-string-p (&optional ppss)
-  (nth 3 (or ppss (syntax-ppss))))
+(defun hyai--in-multiline-string-p (&optional ppss)
+  (setq ppss (or ppss (syntax-ppss)))
+  (and (nth 3 ppss)
+       (< (nth 8 ppss)
+          (save-excursion (forward-line 0) (point)))))
 
 (defun hyai--in-comment-p (&optional ppss)
   (nth 4 (or ppss (syntax-ppss))))
