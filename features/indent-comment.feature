@@ -107,6 +107,17 @@ Feature: hyai indent comment
     Then current indentation is 6
     Then current column is 9
 
+    Given the buffer is empty
+    When I insert:
+    """
+    foo = do
+    putStrLn "foo" -- bar
+    """
+    And I place the cursor after "bar"
+    And I press "<tab>"
+    Then current indentation is 4
+    Then current column is 25
+
   Scenario: Across one line comment
     Given the buffer is empty
     When I insert:

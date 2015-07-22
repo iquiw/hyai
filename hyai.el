@@ -32,7 +32,7 @@
      ((member head '("{-" "--"))
       (unless (hyai--in-comment-p ppss)
         (indent-line-to offset)))
-     ((hyai--in-comment-p ppss) (indent-relative))
+     ((hyai--in-nestable-comment-p ppss) (indent-relative))
      ((hyai--in-multiline-string-p ppss) nil)
      (t
       (setq indents (hyai-indent-candidates head))
@@ -440,6 +440,9 @@
 
 (defun hyai--in-comment-p (&optional ppss)
   (nth 4 (or ppss (syntax-ppss))))
+
+(defun hyai--in-nestable-comment-p (&optional ppss)
+  (numberp (hyai--in-comment-p ppss)))
 
 (defun hyai--goto-comment-start (&optional ppss)
   (let ((p (nth 8 (or ppss (syntax-ppss)))))
