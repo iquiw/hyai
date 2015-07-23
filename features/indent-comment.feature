@@ -84,15 +84,25 @@ Feature: hyai indent comment
     Given the buffer is empty
     When I insert:
     """
+      {-
+    
+    """
+    And I press "<tab>"
+    Then current indentation is 5
+    And I press "<tab>"
+    Then current indentation is 5
+
+    Given the buffer is empty
+    When I insert:
+    """
     {-
       main = do
     
     """
     And I press "<tab>"
     Then current indentation is 2
-    # This is behavior of indent-relative.
     And I press "<tab>"
-    Then current indentation is 7
+    Then current indentation is 2
 
   Scenario: In one line comment
     Given the buffer is empty

@@ -32,7 +32,7 @@
      ((member head '("{-" "--"))
       (unless (hyai--in-comment-p ppss)
         (indent-line-to offset)))
-     ((hyai--in-nestable-comment-p ppss) (indent-relative))
+     ((hyai--in-nestable-comment-p ppss) (hyai-indent-comment))
      ((hyai--in-multiline-string-p ppss) nil)
      (t
       (setq indents (hyai-indent-candidates head))
@@ -45,6 +45,14 @@
         (indent-line-to (car (or nexts indents)))
         (when (> cc offset)
           (forward-char (- cc offset))))))))
+
+(defun hyai-indent-comment ()
+  (pcase-let ((`(,offset . ,head) (save-excursion
+                                     (forward-line -1)
+                                     (hyai--current-offset-head))))
+    (if (string= head "{-")
+        (indent-line-to (+ offset 3))
+      (indent-line-to offset))))
 
 (defun hyai-indent-candidates (head)
   (if (member head '("{-" "--"))
