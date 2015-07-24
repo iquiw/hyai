@@ -28,4 +28,4 @@ Setup from GitHub
 .. |travis| image:: https://travis-ci.org/iquiw/hyai.svg?branch=dawn
             :target: https://travis-ci.org/iquiw/hyai
 .. |coveralls| image:: https://coveralls.io/repos/iquiw/hyai/badge.svg?branch=dawn&service=github
-               :target: https://coveralls.io/github/iquiw/hyai?branch=dawan
+               :target: https://coveralls.io/github/iquiw/hyai?branch=dawn
