@@ -440,16 +440,15 @@
 (defun hyai--botp ()
   (= (current-column) (current-indentation)))
 
-(defun hyai--in-multiline-string-p (&optional ppss)
-  (setq ppss (or ppss (syntax-ppss)))
+(defun hyai--in-multiline-string-p (ppss)
   (and (nth 3 ppss)
        (< (nth 8 ppss)
           (save-excursion (forward-line 0) (point)))))
 
-(defun hyai--in-comment-p (&optional ppss)
-  (nth 4 (or ppss (syntax-ppss))))
+(defun hyai--in-comment-p (ppss)
+  (nth 4 ppss))
 
-(defun hyai--in-nestable-comment-p (&optional ppss)
+(defun hyai--in-nestable-comment-p (ppss)
   (numberp (hyai--in-comment-p ppss)))
 
 (defun hyai--goto-comment-start (&optional ppss)
