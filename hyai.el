@@ -16,6 +16,7 @@
 (defconst hyai-where-offset 2)
 
 (defun hyai-indent-line ()
+  "Indent the current line according to the current context."
   (pcase-let* ((cc (current-column))
                (ppss (syntax-ppss))
                (`(,offset . ,head) (hyai--current-offset-head))
@@ -47,6 +48,7 @@
           (forward-char (- cc offset))))))))
 
 (defun hyai-indent-comment ()
+  "Indent the current line in the nestable comment."
   (pcase-let ((`(,offset . ,head) (save-excursion
                                      (forward-line -1)
                                      (hyai--current-offset-head))))
@@ -55,6 +57,8 @@
       (indent-line-to offset))))
 
 (defun hyai-indent-candidates (head)
+  "Return list of indent candidates in the current line.
+HEAD is the first token in the current line."
   (if (member head '("{-" "--"))
       '()
     (save-excursion
@@ -67,6 +71,7 @@
             (save-excursion (hyai--indent-candidates-from-backward)))))))
 
 (defun hyai--indent-candidates-from-current (head)
+  "Return list of indent candidates according to HEAD."
   (pcase head
     (`"module" '(0))
     (`"where" (if (hyai--search-token-backward nil '("where"))
@@ -130,6 +135,7 @@
                    (t (list (+ (current-indentation) hyai-basic-offset))))))))))
 
 (defun hyai--indent-candidates-from-previous ()
+  "Return list of indent candidates according to the last token in previous line."
   (if (bobp)
       '(0)
     (cl-case (char-syntax (char-before))
@@ -191,6 +197,7 @@
                     '(0))))))))
 
 (defun hyai--indent-candidates-from-backward ()
+  "Return list of indent candidates according to backward tokens."
   (pcase-let* ((`(,offs1 . ,token) (hyai--possible-offsets))
                (offs2)
                (`(,offset . ,head) (hyai--current-offset-head))
@@ -227,6 +234,7 @@
          result)))))
 
 (defun hyai--current-offset-head ()
+  "Return cons of the first token and indent offset in the current line."
   (save-excursion
     (forward-line 0)
     (skip-syntax-forward " ")
@@ -245,6 +253,7 @@
         (cons cc head)))))
 
 (defun hyai--search-token-backward (symbols words)
+  "Search token specified in SYMBOLS or WORDS backward."
   (skip-syntax-backward " >")
   (let (result)
     (hyai--process-syntax-backward
@@ -273,6 +282,7 @@
     result))
 
 (defun hyai--possible-offsets ()
+  "Return list of possible indent offsets of the current line."
   (let (offs prev beg curr last-token)
     (hyai--process-syntax-backward
      (lambda (syn c)
@@ -306,6 +316,8 @@
      last-token)))
 
 (defun hyai--search-vertical (limit &optional after-blank)
+  "Search vertical bar backward until LIMIT.
+If AFTER-BLANK is non-nil, include the last space position in the result."
   (let (result prev)
     (hyai--process-syntax-backward
      (lambda (syn c)
@@ -322,6 +334,8 @@
     (cl-remove-duplicates result)))
 
 (defun hyai--search-vertical-equal (limit)
+  "Search vertical bar or equal backward until LIMIT.
+Return the first non-space position after it."
   (let (result)
     (hyai--process-syntax-backward
      (lambda (syn c)
@@ -338,6 +352,7 @@
     (cl-remove-duplicates result)))
 
 (defun hyai--search-equal-line ()
+  "Search equal backward and return the first non-space position after it."
   (let (result)
     (hyai--process-syntax-backward
      (lambda (syn c)
@@ -353,6 +368,8 @@
     result))
 
 (defun hyai--search-comma-bracket (origin)
+  "Search comma or bracket backward and return the position.
+ORIGIN is a charcter at the original position."
   (let (result)
     (hyai--process-syntax-backward
      (lambda (syn c)
@@ -381,6 +398,7 @@
     result))
 
 (defun hyai--skip-space-backward ()
+  "Skip whitespaces backward across lines."
   (hyai--process-syntax-backward
    (lambda (syn c)
      (cl-case syn
@@ -392,6 +410,15 @@
        (t 'stop)))))
 
 (defun hyai--process-syntax-backward (callback &optional limit)
+  "Perform syntax-aware string processing backward.
+CALLBACK is called with syntax and character and should return 'stop, 'next
+or nil.
+
+ 'stop: stop the processing.
+ 'next: skip to the previous char.
+   nil: skip to the previous different syntax.
+
+Process is stopped at the optoinal LIMIT position."
   (setq limit (or limit 0))
   (let (res)
     (while (and (null (eq res 'stop))
@@ -420,6 +447,8 @@
               (error (setq res 'stop))))))))))
 
 (defun hyai--search-context ()
+  "Search the current context backward.
+Context is \"case\", \"where\" or the token that starts from the BOL."
   (let (result)
     (hyai--process-syntax-backward
      (lambda (syn c)
@@ -434,56 +463,73 @@
     result))
 
 (defun hyai--previous-offset ()
+  "Return the previous offset with empty lines ignored."
   (skip-syntax-backward " >")
   (current-indentation))
 
 (defun hyai--botp ()
+  "Return non-nil if the current column is same as the current indentation."
   (= (current-column) (current-indentation)))
 
 (defun hyai--in-multiline-string-p (ppss)
+  "Return non-nil if the current point is in a multiline string using PPSS."
   (and (nth 3 ppss)
        (< (nth 8 ppss)
           (save-excursion (forward-line 0) (point)))))
 
 (defun hyai--in-comment-p (ppss)
+  "Return non-nil if the current point is in a comment using PPSS."
   (nth 4 ppss))
 
 (defun hyai--in-nestable-comment-p (ppss)
+  "Return non-nil if the current point is in a nestable comment using PPSS."
   (numberp (hyai--in-comment-p ppss)))
 
 (defun hyai--goto-comment-start (&optional ppss)
+  "Goto the point where the comment is started usinng PPSS.
+If PPSS is not supplied, `syntax-ppss' is called internally."
   (let ((p (nth 8 (or ppss (syntax-ppss)))))
     (when p (goto-char p))))
 
-(defun hyai--grab-syntax-forward (sc)
+(defun hyai--grab-syntax-forward (syntax)
+  "Skip SYNTAX forward and return substring from the current point to it."
   (buffer-substring-no-properties
    (point)
-   (progn (skip-syntax-forward sc) (point))))
+   (progn (skip-syntax-forward syntax) (point))))
 
-(defun hyai--grab-syntax-backward (sc)
+(defun hyai--grab-syntax-backward (syntax)
+  "Skip SYNTAX backward and return substring from the current point to it."
   (buffer-substring-no-properties
    (point)
-   (progn (skip-syntax-backward sc) (point))))
+   (progn (skip-syntax-backward syntax) (point))))
 
 (defun hyai--offsetnize (obj &optional plus)
+  "Make list of offsets from OBJ.
+If OBJ is a list, return new list with PLUS added for each element.
+If OBJ is a number, return (OBJ + PLUS).
+Otherwise, return nil."
   (setq plus (or plus 0))
   (cond
    ((listp obj) (mapcar (lambda (x) (+ x plus)) obj))
    ((numberp obj) (list (+ obj plus)))
    (t nil)))
 
-(defun hyai--cycle-zero-first (indents)
+(defun hyai--cycle-zero-first (offsets)
+  "Return new list with modifying OFFSETS so that 0 is the first element.
+If OFFSETS does not contain 0, return OFFSETS as is."
   (or
    (catch 'result
-     (let (lst i (rest indents))
+     (let (lst i (rest offsets))
        (while (setq i (car rest))
          (if (= i 0)
              (throw 'result (nconc rest (nreverse lst)))
            (push i lst))
          (setq rest (cdr rest)))))
-   indents))
+   offsets))
 
 (defun hyai--previous-line-empty-p ()
+  "Return non-nil if the previous line is empty.
+Comment only lines are ignored."
   (save-excursion
     (catch 'result
       (while (>= (forward-line -1) 0)
@@ -494,6 +540,7 @@
           (throw 'result nil)))))))
 
 (defun hyai--type-signature-p ()
+  "Return non-nil if type signature follows after the current point."
   (looking-at-p "^[[:word:][:punct:]]*[[:space:]]*::"))
 
 ;;;###autoload
