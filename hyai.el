@@ -21,6 +21,14 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; HYAI is an indentation minor mode for Haskell.
+;;
+;; To enable HYAI in `haskell-mode', add `hyai-mode' to `haskell-mode-hook'.
+;;
+;;     (add-hook 'haskell-mode-hook #'hyai-mode)
+;;
+
 ;;; Code:
 
 (require 'cl-lib)
@@ -295,7 +303,7 @@ HEAD is the first token in the current line."
     result))
 
 (defun hyai--possible-offsets ()
-  "Return list of possible indent offsets of the current line."
+  "Return cons of list of possible indent offsets and last token."
   (let (offs prev beg curr last-token)
     (hyai--process-syntax-backward
      (lambda (syn c)
