@@ -24,6 +24,10 @@ Setup from GitHub
       (require 'hyai)
       (add-hook 'haskell-mode-hook #'hyai-mode)
 
+License
+=======
+Licensed under the GPL 3+ license.
+
 .. _Style Guide: https://github.com/tibbe/haskell-style-guide
 .. |travis| image:: https://travis-ci.org/iquiw/hyai.svg?branch=dawn
             :target: https://travis-ci.org/iquiw/hyai
