@@ -36,13 +36,18 @@
 (defconst hyai-basic-offset 4)
 (defconst hyai-where-offset 2)
 
-(defun hyai-indent-line ()
-  "Indent the current line according to the current context."
+(defun hyai-indent-line (&optional inverse)
+  "Indent the current line according to the current context.
+If there are multiple indent candidates, they are rotated by pressing tab key.
+If INVERSE is non-nil, rotation is performed in the reverse order."
   (pcase-let* ((cc (current-column))
                (ppss (syntax-ppss))
                (`(,offset . ,head) (hyai--current-offset-head))
                (indents)
-               (nexts))
+               (nexts)
+               (command (if inverse
+                            #'hyai-indent-backward
+                          #'indent-for-tab-command)))
     (cond
      ((string= head "-}")
       (forward-line 0)
@@ -60,13 +65,20 @@
       (setq indents (hyai-indent-candidates head))
       (if (null indents)
           (indent-line-to offset)
-        (when (hyai--previous-line-empty-p)
-          (setq indents (hyai--cycle-zero-first indents)))
-        (setq nexts (when (eq this-command 'indent-for-tab-command)
-                    (cdr (member offset indents))))
+        (cond
+         (inverse (setq indents (nreverse indents)))
+         ((hyai--previous-line-empty-p)
+          (setq indents (hyai--cycle-zero-first indents))))
+        (setq nexts (when (eq this-command command)
+                      (cdr (member offset indents))))
         (indent-line-to (car (or nexts indents)))
         (when (> cc offset)
           (forward-char (- cc offset))))))))
+
+(defun hyai-indent-backward ()
+  "Indent the current line as `hyai-indent-line', but inversely."
+  (interactive)
+  (hyai-indent-line t))
 
 (defun hyai-indent-comment ()
   "Indent the current line in the nestable comment."
@@ -564,10 +576,16 @@ Comment only lines are ignored."
   "Return non-nil if type signature follows after the current point."
   (looking-at-p "^[[:word:][:punct:]]*[[:space:]]*::"))
 
+(defvar hyai-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<backtab>") #'hyai-indent-backward)
+    map))
+
 ;;;###autoload
 (define-minor-mode hyai-mode
   "Haskell Yet Another Indentation minor mode."
   :lighter " HYAI"
+  :keymap hyai-mode-map
   (kill-local-variable 'indent-line-function)
   (when hyai-mode
     (set (make-local-variable 'indent-line-function) 'hyai-indent-line)))
