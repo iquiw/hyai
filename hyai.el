@@ -83,8 +83,8 @@ If INVERSE is non-nil, rotation is performed in the reverse order."
 (defun hyai-indent-comment ()
   "Indent the current line in the nestable comment."
   (pcase-let ((`(,offset . ,head) (save-excursion
-                                     (forward-line -1)
-                                     (hyai--current-offset-head))))
+                                    (forward-line -1)
+                                    (hyai--current-offset-head))))
     (if (string= head "{-")
         (indent-line-to (+ offset 3))
       (indent-line-to offset))))
@@ -112,7 +112,7 @@ HEAD is the first token in the current line."
                 (list (+ (current-indentation) hyai-where-offset))))
 
     (`"then" (hyai--offsetnize (hyai--search-token-backward nil '("if"))
-                              hyai-basic-offset))
+                               hyai-basic-offset))
     (`"else" (let ((offset (hyai--search-token-backward nil '("then"))))
                (hyai--offsetnize
                 (if (equal offset (current-indentation))
@@ -239,32 +239,32 @@ HEAD is the first token in the current line."
     (if (and offs1 (member token '("(" "[" "{" "then")))
         offs1
 
-     (when (equal token "else")
-       (hyai--search-token-backward nil '("if"))
-       (setq offset (current-column)))
+      (when (equal token "else")
+        (hyai--search-token-backward nil '("if"))
+        (setq offset (current-column)))
 
-     (unless offs1
-       (push (+ offset hyai-basic-offset) offs1)
-       (push offset offs1))
+      (unless offs1
+        (push (+ offset hyai-basic-offset) offs1)
+        (push offset offs1))
 
-     (while (and (> offset hyai-basic-offset)
-                 (>= (forward-line -1) 0))
-       (when (and (< offset minoff) (< offset poffset)
-                  (not (member head '("|" "->"))))
-         (push offset offs2)
-         (setq poffset offset))
-       (pcase-let ((`(,o . ,h) (hyai--current-offset-head)))
-         (setq offset o)
-         (setq head h)))
-     (when (and (= offset hyai-basic-offset)
-                (< offset minoff))
-       (push offset offs2))
-     (when (< 0 minoff)
-       (push 0 offs2))
-     (let ((result (append offs1 offs2)))
-       (if (hyai--type-signature-p)
-           (hyai--cycle-zero-first result)
-         result)))))
+      (while (and (> offset hyai-basic-offset)
+                  (>= (forward-line -1) 0))
+        (when (and (< offset minoff) (< offset poffset)
+                   (not (member head '("|" "->"))))
+          (push offset offs2)
+          (setq poffset offset))
+        (pcase-let ((`(,o . ,h) (hyai--current-offset-head)))
+          (setq offset o)
+          (setq head h)))
+      (when (and (= offset hyai-basic-offset)
+                 (< offset minoff))
+        (push offset offs2))
+      (when (< 0 minoff)
+        (push 0 offs2))
+      (let ((result (append offs1 offs2)))
+        (if (hyai--type-signature-p)
+            (hyai--cycle-zero-first result)
+          result)))))
 
 (defun hyai--current-offset-head ()
   "Return cons of the first token and indent offset in the current line."
