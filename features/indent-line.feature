@@ -205,13 +205,17 @@ Feature: hyai indent line
              \qux\
     """
     And I press "RET"
-    Then current indentation is 0
+    Then current indentation is 9
     And I press "<tab>"
-    Then current indentation is 0
+    Then current indentation is 9
 
     Given the buffer is empty
     When I insert:
     """
-    foobar = "baz\
+    foo = "bar\
+          \baz\
              \qux\
     """
+    And I press "<tab>"
+    Then current indentation is 6
+    And current column is 11

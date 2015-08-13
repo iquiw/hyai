@@ -59,11 +59,11 @@ If INVERSE is non-nil, rotation is performed in the reverse order."
      ((member head '("{-" "--"))
       (unless (hyai--in-comment-p ppss)
         (indent-line-to offset)))
-     ((hyai--in-nestable-comment-p ppss)
+     ((or (hyai--in-nestable-comment-p ppss)
+          (hyai--in-multiline-string-p ppss))
       (hyai-indent-comment)
       (when (> cc offset)
         (forward-char (- cc offset))))
-     ((hyai--in-multiline-string-p ppss) nil)
      (t
       (setq indents (hyai-indent-candidates head))
       (if (null indents)
@@ -84,7 +84,7 @@ If INVERSE is non-nil, rotation is performed in the reverse order."
   (hyai-indent-line t))
 
 (defun hyai-indent-comment ()
-  "Indent the current line in the nestable comment."
+  "Indent the current line in nestable comment or multiline string."
   (pcase-let ((`(,offset . ,head) (save-excursion
                                     (forward-line -1)
                                     (hyai--current-offset-head))))
