@@ -104,6 +104,16 @@ Feature: hyai indent comment
     And I press "<tab>"
     Then current indentation is 2
 
+    Given the buffer is empty
+    When I insert:
+    """
+    {- main = do
+          foo
+    """
+    And I press "<tab>"
+    Then current indentation is 3
+    And current column is 6
+
   Scenario: In one line comment
     Given the buffer is empty
     When I insert:

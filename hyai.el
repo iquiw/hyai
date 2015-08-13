@@ -59,7 +59,10 @@ If INVERSE is non-nil, rotation is performed in the reverse order."
      ((member head '("{-" "--"))
       (unless (hyai--in-comment-p ppss)
         (indent-line-to offset)))
-     ((hyai--in-nestable-comment-p ppss) (hyai-indent-comment))
+     ((hyai--in-nestable-comment-p ppss)
+      (hyai-indent-comment)
+      (when (> cc offset)
+        (forward-char (- cc offset))))
      ((hyai--in-multiline-string-p ppss) nil)
      (t
       (setq indents (hyai-indent-candidates head))
