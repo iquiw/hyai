@@ -24,6 +24,20 @@ Setup from GitHub
       (require 'hyai)
       (add-hook 'haskell-mode-hook #'hyai-mode)
 
+Status
+======
+
+Supported Style
+---------------
+* Basic Indentation and ``where``
+* Data Declarations
+* List Declarations
+* Hanging Lambdas (partial)
+* Export Lists
+* If-then-else clauses (partial)
+* Case expressions
+* Top-Level Definitions
+
 License
 =======
 Licensed under the GPL 3+ license.
