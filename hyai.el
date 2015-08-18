@@ -293,7 +293,7 @@ HEAD is the first token in the current line."
   (skip-syntax-backward " >")
   (let (result)
     (hyai--process-syntax-backward
-     (lambda (syn c)
+     (lambda (syn _c)
        (cl-case syn
          (?> (if (/= (char-syntax (char-after)) ?\s)
                  'stop
@@ -356,7 +356,7 @@ HEAD is the first token in the current line."
 If AFTER-BLANK is non-nil, include the last space position in the result."
   (let (result prev)
     (hyai--process-syntax-backward
-     (lambda (syn c)
+     (lambda (syn _c)
        (cl-case syn
          (?\s (when after-blank
                 (setq prev (current-column))
@@ -374,7 +374,7 @@ If AFTER-BLANK is non-nil, include the last space position in the result."
 Return the first non-space position after it."
   (let (result)
     (hyai--process-syntax-backward
-     (lambda (syn c)
+     (lambda (syn _c)
        (when (= syn ?.)
          (let ((s (hyai--grab-syntax-backward ".")) offset)
            (setq offset (current-column))
@@ -391,7 +391,7 @@ Return the first non-space position after it."
   "Search equal backward and return the first non-space position after it."
   (let (result)
     (hyai--process-syntax-backward
-     (lambda (syn c)
+     (lambda (syn _c)
        (cl-case syn
          (?> (setq result nil)
              'stop)
@@ -436,7 +436,7 @@ ORIGIN is a charcter at the original position."
 (defun hyai--skip-space-backward ()
   "Skip whitespaces backward across lines."
   (hyai--process-syntax-backward
-   (lambda (syn c)
+   (lambda (syn _c)
      (cl-case syn
        (?\s (skip-syntax-backward " ")
             'next)
@@ -487,7 +487,7 @@ Process is stopped at the optoinal LIMIT position."
 Context is \"case\", \"where\" or the token that starts from the BOL."
   (let (result)
     (hyai--process-syntax-backward
-     (lambda (syn c)
+     (lambda (syn _c)
        (cl-case syn
          (?> (when (looking-at "^\\([^#[:space:]]+\\)")
                (setq result (match-string-no-properties 1))
