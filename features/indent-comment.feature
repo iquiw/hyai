@@ -38,11 +38,31 @@ Feature: hyai indent comment
     Given the buffer is empty
     When I insert:
     """
-    module Foo
-        (
+        {---==
+    """
+    And I place the cursor before "  {-"
+    And I press "<tab>"
+    Then current indentation is 4
+    Then current column is 4
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar =
           -- bar
     """
     And I place the cursor before " --"
+    And I press "<tab>"
+    Then current indentation is 6
+    Then current column is 6
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar =
+          -----bar
+    """
+    And I place the cursor before " -----"
     And I press "<tab>"
     Then current indentation is 6
     Then current column is 6
