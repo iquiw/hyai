@@ -457,7 +457,7 @@ or nil.
  'next: skip to the previous char.
    nil: skip to the previous different syntax.
 
-Process is stopped at the optoinal LIMIT position."
+Process is stopped at the optional LIMIT position."
   (setq limit (or limit 0))
   (let (res)
     (while (and (null (eq res 'stop))
