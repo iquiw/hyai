@@ -568,6 +568,25 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(4)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+        let foobar =
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(12)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    main = let foobar =
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(15)"
+
   Scenario: After = line
     Given the buffer is empty
     When I insert:

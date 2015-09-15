@@ -204,7 +204,8 @@ HEAD is the first token in the current line."
 
       (?. (pcase (hyai--grab-syntax-backward ".")
             (`"="
-             (list (+ (current-indentation) hyai-basic-offset)))
+             (or (hyai--offsetnize (hyai--search-let) hyai-basic-offset)
+                 (list (+ (current-indentation) hyai-basic-offset))))
             (`"->"
              (let ((off1 (hyai--search-equal-line))
                    (off2 (current-indentation)))
@@ -353,6 +354,24 @@ HEAD is the first token in the current line."
        (cons curr offs))
       (t offs))
      last-token)))
+
+(defun hyai--search-let ()
+  "Search \"let\" token backward in the current line."
+  (let (result prev)
+    (hyai--process-syntax-backward
+     (lambda (syn _c)
+       (cl-case syn
+         (?\s (setq prev (current-column))
+              (skip-syntax-backward " ")
+              'next)
+         (?w (let ((s (hyai--grab-syntax-backward "w")))
+               (if (string= s "let")
+                   (progn
+                     (push (or prev (current-column)) result)
+                     'stop)
+                 'next)))
+         (?> 'stop))))
+    result))
 
 (defun hyai--search-vertical (limit &optional after-blank)
   "Search vertical bar backward until LIMIT.
