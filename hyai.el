@@ -240,9 +240,8 @@ HEAD is the first token in the current line."
   "Return list of indent candidates according to backward tokens."
   (pcase-let* ((`(,offs1 . ,token) (hyai--possible-offsets))
                (offs2)
-               (`(,offset . ,head) (hyai--current-offset-head))
-               (minoff (or (car offs1) offset))
-               (poffset minoff))
+               (offset (current-indentation))
+               (min-offset (or (car offs1) offset)))
     (if (and offs1 (member token '("(" "[" "{" "then")))
         offs1
 
@@ -254,24 +253,40 @@ HEAD is the first token in the current line."
         (push (+ offset hyai-basic-offset) offs1)
         (push offset offs1))
 
-      (while (and (> offset hyai-basic-offset)
-                  (>= (forward-line -1) 0))
-        (when (and (< offset minoff) (< offset poffset)
-                   (not (member head '("|" "->"))))
-          (push offset offs2)
-          (setq poffset offset))
-        (pcase-let ((`(,o . ,h) (hyai--current-offset-head)))
-          (setq offset o)
-          (setq head h)))
+      (when (> offset 0)
+        (setq offs2 (hyai--indent-candidates-rest offset)))
+
       (when (and (= offset hyai-basic-offset)
-                 (< offset minoff))
+                 (< offset min-offset))
         (push offset offs2))
-      (when (< 0 minoff)
+      (when (< 0 min-offset)
         (push 0 offs2))
       (let ((result (append offs1 offs2)))
         (if (hyai--type-signature-p)
             (hyai--cycle-zero-first result)
           result)))))
+
+(defun hyai--indent-candidates-rest (base-offset)
+  "Return list of indent candidates from rest of backward lines.
+Candidates larger than BASE-OFFSET is ignored."
+  (let* (result (coffset base-offset))
+    (while (>= coffset hyai-basic-offset)
+      (forward-line 0)
+      (skip-syntax-backward "> ")
+      (pcase-let ((`(,offs . _) (hyai--possible-offsets))
+                  (`(,offset . ,head) (hyai--current-offset-head)))
+        (setq coffset offset)
+        (if offs
+            (setq result (append
+                          (cl-remove-if (lambda (x) (>= x base-offset)) offs)
+                          result))
+          (when (and (> coffset 0) (< coffset base-offset)
+                     (>= coffset hyai-basic-offset)
+                     (not (member head '("|" "->"))))
+            (push coffset result)))
+        (when (< offset base-offset)
+          (setq base-offset offset))))
+    result))
 
 (defun hyai--current-offset-head ()
   "Return cons of the first token and indent offset in the current line."
