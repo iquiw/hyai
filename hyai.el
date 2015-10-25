@@ -628,6 +628,9 @@ Comment only lines are ignored."
   :keymap hyai-mode-map
   (kill-local-variable 'indent-line-function)
   (when hyai-mode
+    (when (and (bound-and-true-p haskell-indentation-mode)
+               (fboundp 'haskell-indentation-mode))
+      (haskell-indentation-mode 0))
     (set (make-local-variable 'indent-line-function) 'hyai-indent-line)))
 
 (provide 'hyai)
