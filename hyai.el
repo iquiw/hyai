@@ -107,7 +107,7 @@ HEAD is the first token in the current line."
           '(0)
         (or (save-excursion (hyai--indent-candidates-from-current head))
             (save-excursion (hyai--indent-candidates-from-previous))
-            (save-excursion (hyai--indent-candidates-from-backward)))))))
+            (save-excursion (hyai--indent-candidates-from-backward head)))))))
 
 (defun hyai--indent-candidates-from-current (head)
   "Return list of indent candidates according to HEAD."
@@ -236,8 +236,8 @@ HEAD is the first token in the current line."
              (?\) (when (equal (hyai--search-context) "import")
                     '(0))))))))
 
-(defun hyai--indent-candidates-from-backward ()
-  "Return list of indent candidates according to backward tokens."
+(defun hyai--indent-candidates-from-backward (head)
+  "Return list of indent candidates according to HEAD and backward tokens."
   (pcase-let* ((`(,offs1 . ,token) (hyai--possible-offsets))
                (offs2)
                (offset (current-indentation))
@@ -249,18 +249,28 @@ HEAD is the first token in the current line."
         (hyai--search-token-backward nil '("if"))
         (setq offset (current-column)))
 
-      (unless offs1
-        (push (+ offset hyai-basic-offset) offs1)
-        (push offset offs1))
-
       (when (> offset 0)
         (setq offs2 (hyai--indent-candidates-rest offset)))
 
       (when (and (= offset hyai-basic-offset)
                  (< offset min-offset))
         (push offset offs2))
-      (when (< 0 min-offset)
+
+      (when (and offs1 (string= head "["))
+        (setq offs1
+              (cons
+               (+ offset hyai-basic-offset)
+               (if (equal offset min-offset)
+                   (cdr offs1)
+                 offs1))))
+
+      (unless offs1
+        (push (+ offset hyai-basic-offset) offs1)
+        (push offset offs1))
+
+      (when (and (< 0 min-offset) (not (string= head "[")))
         (push 0 offs2))
+
       (let ((result (append offs1 offs2)))
         (if (hyai--type-signature-p)
             (hyai--cycle-zero-first result)

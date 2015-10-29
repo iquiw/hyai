@@ -393,6 +393,36 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(8)"
 
+  Scenario: Before [
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = concat
+    [
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4 9)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    instance Show Foo where
+        show (Foo n) = concat
+    [
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(8 19)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = do
+        barbaz
+    [
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4 8)"
+
   Scenario: Before ]
     Given the buffer is empty
     When I insert:
