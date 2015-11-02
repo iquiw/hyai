@@ -114,7 +114,9 @@ HEAD is the first token in the current line."
   (pcase head
     (`"module" '(0))
     (`"where" (if (hyai--search-token-backward nil '("where"))
-                  (list (+ (current-indentation) hyai-basic-offset))
+                  (or
+                   (hyai--offsetnize (hyai--botp) hyai-basic-offset)
+                   (list (+ (hyai--next-offset) hyai-where-offset)))
                 (list (+ (current-indentation) hyai-where-offset))))
 
     (`"then" (hyai--offsetnize (hyai--search-token-backward nil '("if"))
@@ -550,9 +552,17 @@ Context is \"case\", \"where\" or the token that starts from the BOL."
   (skip-syntax-backward " >")
   (current-indentation))
 
+(defun hyai--next-offset ()
+  "Return the next offset with empty lines ignored."
+  (forward-line 1)
+  (skip-syntax-forward " >")
+  (current-indentation))
+
 (defun hyai--botp ()
-  "Return non-nil if the current column is same as the current indentation."
-  (= (current-column) (current-indentation)))
+  "Return the current column if it is same as the current indentation."
+  (let ((cc (current-column)))
+    (and (= (current-column) (current-indentation))
+         cc)))
 
 (defun hyai--in-multiline-string-p (ppss)
   "Return non-nil if the current point is in a multiline string using PPSS."

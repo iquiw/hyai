@@ -156,6 +156,16 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(2)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    instance Show Foo where
+        show = showFoo
+    where
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(6)"
+
   Scenario: After case
     Given the buffer is empty
     When I insert:
