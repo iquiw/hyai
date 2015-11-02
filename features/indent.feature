@@ -38,6 +38,82 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(0)"
 
+  Scenario: Before class
+    Given the buffer is empty
+    When I insert:
+    """
+    module Main where
+    
+    class Foo where
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0)"
+
+  Scenario: Before data
+    Given the buffer is empty
+    When I insert:
+    """
+    module Main where
+    
+    data Foo = Foo Int
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0)"
+
+  Scenario: Before import
+    Given the buffer is empty
+    When I insert:
+    """
+    import Predule
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    import Predule
+    import Control.Monad
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0)"
+
+  Scenario: Before instance
+    Given the buffer is empty
+    When I insert:
+    """
+    module Main where
+    
+    data Foo = Foo Int
+    
+    instance Show Foo where
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0)"
+
+  Scenario: Before newtype
+    Given the buffer is empty
+    When I insert:
+    """
+    module Main where
+    newtype Foo = Foo [String]
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0)"
+
+  Scenario: Before type
+    Given the buffer is empty
+    When I insert:
+    """
+    module Main
+        (
+          Foo
+        ) where
+    type Foo = String
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(0)"
+
   Scenario: After do
     Given the buffer is empty
     When I insert:

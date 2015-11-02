@@ -112,7 +112,8 @@ HEAD is the first token in the current line."
 (defun hyai--indent-candidates-from-current (head)
   "Return list of indent candidates according to HEAD."
   (pcase head
-    (`"module" '(0))
+    ((or `"class" `"data" `"import" `"instance" `"module" `"newtype" `"type")
+     '(0))
     (`"where" (if (hyai--search-token-backward nil '("where"))
                   (or
                    (hyai--offsetnize (hyai--botp) hyai-basic-offset)
