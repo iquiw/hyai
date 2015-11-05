@@ -463,11 +463,11 @@ Feature: hyai indent
     Given the buffer is empty
     When I insert:
     """
-    foobarbaz = [ qux
+    foobarbaz = [
     
     """
     And I call hyai-indent-candidates at the current point
-    Then indent candidates are "(14)"
+    Then indent candidates are "(4)"
 
     Given the buffer is empty
     When I insert:
@@ -926,7 +926,17 @@ Feature: hyai indent
     
     """
     And I call hyai-indent-candidates at the current point
-    Then indent candidates are "(14)"
+    Then indent candidates are "(14 18)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+        putStrLn ( foo
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(15 19)"
 
     Given the buffer is empty
     When I insert:
@@ -936,7 +946,29 @@ Feature: hyai indent
     
     """
     And I call hyai-indent-candidates at the current point
-    Then indent candidates are "(12)"
+    Then indent candidates are "(12 16)"
+
+  Scenario: After [ line
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar =
+        [ buzqux
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(6 10)"
+
+  Scenario: After { line
+    Given the buffer is empty
+    When I insert:
+    """
+    data Person = Person
+        { firstName -- ^ First name
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(6 10)"
 
   Scenario: After normal line
     Given the buffer is empty

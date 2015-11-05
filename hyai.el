@@ -245,9 +245,11 @@ HEAD is the first token in the current line."
                (offs2)
                (offset (current-indentation))
                (min-offset (or (car offs1) offset)))
-    (if (and offs1 (member token '("(" "[" "{" "then")))
-        offs1
-
+    (cond
+     ((string= token "then") offs1)
+     ((member token  '("(" "[" "{"))
+      (list min-offset (+ min-offset hyai-basic-offset)))
+     (t
       (when (equal token "else")
         (hyai--search-token-backward nil '("if"))
         (setq offset (current-column)))
@@ -277,7 +279,7 @@ HEAD is the first token in the current line."
       (let ((result (append offs1 offs2)))
         (if (hyai--type-signature-p)
             (hyai--cycle-zero-first result)
-          result)))))
+          result))))))
 
 (defun hyai--indent-candidates-rest (base-offset)
   "Return list of indent candidates from rest of backward lines.
