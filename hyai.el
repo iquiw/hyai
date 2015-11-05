@@ -246,8 +246,7 @@ HEAD is the first token in the current line."
                (offset (current-indentation))
                (min-offset (or (car offs1) offset)))
     (cond
-     ((string= token "then") offs1)
-     ((member token  '("(" "[" "{"))
+     ((member token  '("(" "[" "{" "then"))
       (list min-offset (+ min-offset hyai-basic-offset)))
      (t
       (when (equal token "else")

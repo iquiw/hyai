@@ -871,7 +871,7 @@ Feature: hyai indent
     
     """
     And I call hyai-indent-candidates at the current point
-    Then indent candidates are "(13)"
+    Then indent candidates are "(13 17)"
 
   Scenario: After else line
     Given the buffer is empty
