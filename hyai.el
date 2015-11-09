@@ -246,7 +246,7 @@ HEAD is the first token in the current line."
                (offset (current-indentation))
                (min-offset (or (car offs1) offset)))
     (cond
-     ((member token  '("(" "[" "{" "then"))
+     ((member token  '("(" "[" "{" "," "then"))
       (list min-offset (+ min-offset hyai-basic-offset)))
      (t
       (when (equal token "else")
@@ -368,7 +368,7 @@ Candidates larger than BASE-OFFSET is ignored."
               (t 'next)))
          (?. (setq curr (current-column))
              (setq last-token (hyai--grab-syntax-backward "."))
-             (when (member last-token '("=" "->" "<-" "::"))
+             (when (member last-token '("=" "->" "<-" "::" ","))
                (push (or prev curr) offs)
                (setq beg (current-column)))
              'next)

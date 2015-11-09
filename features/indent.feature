@@ -981,6 +981,18 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(6 10)"
 
+  Scenario: After , line
+    Given the buffer is empty
+    When I insert:
+    """
+    main = putStrLn $ concat
+        [ foo
+        , bar
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(6 10)"
+
   Scenario: After normal line
     Given the buffer is empty
     When I insert:
