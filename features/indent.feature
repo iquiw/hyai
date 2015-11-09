@@ -884,7 +884,18 @@ Feature: hyai indent
     
     """
     And I call hyai-indent-candidates at the current point
-    Then indent candidates are "(13 0 4)"
+    Then indent candidates are "(13 17 0 4)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = do
+        if foo then bar else baz
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(25 29 0 4)"
+
 
   Scenario: After if then line
     Given the buffer is empty

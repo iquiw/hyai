@@ -250,6 +250,7 @@ HEAD is the first token in the current line."
       (list min-offset (+ min-offset hyai-basic-offset)))
      (t
       (when (equal token "else")
+        (setq offs1 (append offs1 (list (+ min-offset hyai-basic-offset))))
         (hyai--search-token-backward nil '("if"))
         (setq offset (current-column)))
 
