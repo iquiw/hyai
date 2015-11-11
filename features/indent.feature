@@ -583,6 +583,57 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(18)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = concat [ baz,
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(18)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = concat [ baz,
+                      qux,
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(18)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = concat [
+        baz,
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = concat [
+        baz,
+        qux,
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = concat [
+        putStrLn
+           "baz",
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
   Scenario: Before ,
     Given the buffer is empty
     When I insert:

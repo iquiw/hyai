@@ -4,7 +4,7 @@
 
 ;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
 ;; URL:       https://github.com/iquiw/hyai
-;; Version:   1.2.0
+;; Version:   1.2.1
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -216,15 +216,14 @@ HEAD is the first token in the current line."
                    (list (+ off2 hyai-basic-offset) off1)
                  (list off2 (+ off2 hyai-basic-offset)))))
             (","
-             (let* ((off1 (hyai--previous-offset))
-                    (off2 (hyai--search-comma-bracket ?,)))
-               (list (or (and off2
-                              (progn
-                                (forward-char)
-                                (skip-syntax-forward " ")
-                                (unless (eolp)
-                                  (current-column))))
-                         off1))))))
+             (list (or (and (hyai--search-comma-bracket ?,)
+                            (progn
+                              (forward-char)
+                              (skip-syntax-forward " ")
+                              (if (eolp)
+                                  (hyai--next-offset)
+                                (current-column))))
+                       (hyai--previous-offset))))))
 
       (?\( (cl-case (char-before)
              (?\( (list (+ (current-column) 1)))
