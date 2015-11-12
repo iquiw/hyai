@@ -1103,6 +1103,21 @@ Feature: hyai indent
     # 0 is not proper indentation, but left as is for now.
     Then indent candidates are "(12 16 0 4 8)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    main = do
+        foobar
+      where
+        foobar = bazqux
+          where
+            baz = do
+                qux
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(12 16 0 4 8)"
+
   Scenario: In list comprehension
     Given the buffer is empty
     When I insert:

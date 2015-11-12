@@ -4,7 +4,7 @@
 
 ;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
 ;; URL:       https://github.com/iquiw/hyai
-;; Version:   1.2.1
+;; Version:   1.2.2
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -296,7 +296,7 @@ Candidates larger than BASE-OFFSET is ignored."
                           result))
           (when (and (> coffset 0) (< coffset base-offset)
                      (>= coffset hyai-basic-offset)
-                     (not (member head '("|" "->"))))
+                     (not (member head '("|" "->" "where"))))
             (push coffset result)))
         (when (< offset base-offset)
           (setq base-offset offset))))
