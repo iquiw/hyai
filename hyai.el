@@ -4,7 +4,7 @@
 
 ;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
 ;; URL:       https://github.com/iquiw/hyai
-;; Version:   1.2.2
+;; Version:   1.2.3
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -196,8 +196,14 @@ HEAD is the first token in the current line."
             (`"of"
              (let ((offset (hyai--search-token-backward nil '("case"))))
                (when offset
-                 (mapcar (lambda (x) (+ x hyai-basic-offset))
-                         (list (current-indentation) offset)))))
+                 (hyai--offsetnize
+                  (if (or (= offset (current-indentation))
+                          (progn
+                            (hyai--skip-space-backward)
+                            (not (equal (hyai--grab-syntax-backward ".") "="))))
+                      offset
+                    (list (current-indentation) offset))
+                  hyai-basic-offset))))
             ((or `"then" `"else")
              (if (hyai--botp)
                  (list (+ (current-column) hyai-basic-offset))
