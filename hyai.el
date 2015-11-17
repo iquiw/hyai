@@ -294,8 +294,8 @@ Candidates larger than BASE-OFFSET is ignored."
     (while (>= coffset hyai-basic-offset)
       (forward-line 0)
       (skip-syntax-backward "> ")
-      (pcase-let ((`(,offs . _) (hyai--possible-offsets))
-                  (`(,offset . ,head) (hyai--current-offset-head)))
+      (pcase-let* ((`(,offs . _) (hyai--possible-offsets))
+                   (`(,offset . ,head) (hyai--current-offset-head)))
         (setq coffset offset)
         (if offs
             (setq result (append
