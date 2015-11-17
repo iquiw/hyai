@@ -281,6 +281,16 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(9)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = do
+        let baz = case qux of
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(12 18)"
+
   Scenario: After then
     Given the buffer is empty
     When I insert:

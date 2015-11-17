@@ -4,7 +4,7 @@
 
 ;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
 ;; URL:       https://github.com/iquiw/hyai
-;; Version:   1.2.3
+;; Version:   1.2.4
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -202,7 +202,8 @@ HEAD is the first token in the current line."
                             (hyai--skip-space-backward)
                             (not (equal (hyai--grab-syntax-backward ".") "="))))
                       offset
-                    (list (current-indentation) offset))
+                    (list (or (hyai--search-let)
+                              (current-indentation)) offset))
                   hyai-basic-offset))))
             ((or `"then" `"else")
              (if (hyai--botp)
@@ -391,7 +392,8 @@ Candidates larger than BASE-OFFSET is ignored."
      last-token)))
 
 (defun hyai--search-let ()
-  "Search \"let\" token backward in the current line."
+  "Search \"let\" token backward in the current line.
+Return offset after \"let\" or nil. "
   (let (result prev)
     (hyai--process-syntax-backward
      (lambda (syn _c)
@@ -402,7 +404,7 @@ Candidates larger than BASE-OFFSET is ignored."
          (?w (let ((s (hyai--grab-syntax-backward "w")))
                (if (string= s "let")
                    (progn
-                     (push (or prev (current-column)) result)
+                     (setq result (or prev (current-column)))
                      'stop)
                  'next)))
          (?> 'stop))))
