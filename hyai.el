@@ -4,7 +4,7 @@
 
 ;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
 ;; URL:       https://github.com/iquiw/hyai
-;; Version:   1.2.4
+;; Version:   1.2.5
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -252,8 +252,11 @@ HEAD is the first token in the current line."
                (offset (current-indentation))
                (min-offset (or (car offs1) offset)))
     (cond
-     ((member token  '("(" "[" "{" "," "then"))
-      (list min-offset (+ min-offset hyai-basic-offset)))
+     ((equal token "let")
+      offs1)
+     ((member token '("(" "[" "{" "," "then"))
+      (or (cdr offs1)
+          (list min-offset (+ min-offset hyai-basic-offset))))
      (t
       (when (equal token "else")
         (setq offs1 (append offs1 (list (+ min-offset hyai-basic-offset))))
@@ -359,7 +362,7 @@ Candidates larger than BASE-OFFSET is ignored."
 
 (defun hyai--possible-offsets ()
   "Return cons of list of possible indent offsets and last token."
-  (let (offs prev beg curr last-token)
+  (let (offs prev curr last-token)
     (hyai--process-syntax-backward
      (lambda (syn c)
        (cl-case syn
@@ -370,26 +373,31 @@ Candidates larger than BASE-OFFSET is ignored."
              (setq last-token (hyai--grab-syntax-backward "w"))
              (cond
               ((member last-token '("let" "then" "else"))
-               (push (or prev curr) offs) 'stop)
+               (push (or prev curr) offs)
+               (when (and (equal last-token "let")
+                          (hyai--botp))
+                 (push (current-indentation) offs))
+               'stop)
               (t 'next)))
          (?. (setq curr (current-column))
              (setq last-token (hyai--grab-syntax-backward "."))
-             (when (member last-token '("=" "->" "<-" "::" ","))
+             (cond
+              ((member last-token '("=" "->" "<-" "::"))
                (push (or prev curr) offs)
-               (setq beg (current-column)))
-             'next)
+               'next)
+              ((equal last-token ",")
+               (push (or prev curr) offs)
+               'stop)
+              (t 'next)))
          (?\( (setq curr (current-column))
               (setq last-token (string c))
               (push (if (= (char-syntax (char-after)) ?\s) prev curr) offs)
               'stop)
-         (?> 'stop))))
-    (setq curr (current-indentation))
-    (cons
-     (cond
-      ((and beg (/= beg curr) (/= curr 0))
-       (cons curr offs))
-      (t offs))
-     last-token)))
+         (?> (when (and prev offs
+                        (not (member last-token '("->"))))
+               (push prev offs))
+             'stop))))
+    (cons offs last-token)))
 
 (defun hyai--search-let ()
   "Search \"let\" token backward in the current line.

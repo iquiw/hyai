@@ -794,6 +794,27 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(7 0)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    person = Person
+        { firstName = "John"
+
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(18)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    person = Person
+        { firstName = "John"
+        , lastName = "Smith"
+
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(17)"
+
   Scenario: After let line
     Given the buffer is empty
     When I insert:
@@ -802,7 +823,7 @@ Feature: hyai indent
     
     """
     And I call hyai-indent-candidates at the current point
-    Then indent candidates are "(13 19 0)"
+    Then indent candidates are "(13 19)"
 
     Given the buffer is empty
     When I insert:
