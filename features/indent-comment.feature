@@ -67,6 +67,18 @@ Feature: hyai indent comment
     Then current indentation is 6
     Then current column is 6
 
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar =
+       -- bar
+     -- baz
+    """
+    And I place the cursor before " -- baz"
+    And I press "<tab>"
+    Then current indentation is 3
+    Then current column is 3
+
   Scenario: Comment end
     Given the buffer is empty
     When I insert:
