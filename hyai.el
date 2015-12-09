@@ -62,19 +62,27 @@ If INVERSE is non-nil, previous indent is returned."
                    #'indent-for-tab-command))
         indents nexts)
     (cond
+     ((member head '(comment string))
+      (hyai--indent-comment))
+
      ((string= head "-}")
       (forward-line 0)
       (save-excursion
         (hyai--goto-comment-start)
         (current-column)))
 
-     ((string-match-p "^[-{]-+$" head)
+     ((string= "{-" head)
       (unless (hyai--in-comment-p ppss)
         offset))
 
-     ((or (hyai--in-nestable-comment-p ppss)
-          (hyai--in-multiline-string-p ppss))
-      (hyai--indent-comment))
+     ((string= "--" head)
+      (pcase-let ((`(,poffset . ,phead) (hyai--current-offset-head -1)))
+        (cond
+         ((and (stringp phead)
+               (string= phead "--"))
+          poffset)
+         ((not (hyai--in-comment-p ppss))
+          offset))))
 
      (t
       (setq indents (hyai-indent-candidates head))
@@ -91,10 +99,8 @@ If INVERSE is non-nil, previous indent is returned."
 
 (defun hyai--indent-comment ()
   "Return indent of the current line in nestable comment or multiline string."
-  (pcase-let ((`(,offset . ,head) (save-excursion
-                                    (forward-line -1)
-                                    (hyai--current-offset-head))))
-    (if (string= head "{-")
+  (pcase-let ((`(,offset . ,head) (hyai--current-offset-head -1)))
+    (if (equal head "{-")
         (+ offset 3)
       offset)))
 
@@ -315,24 +321,43 @@ Candidates larger than BASE-OFFSET is ignored."
           (setq base-offset offset))))
     result))
 
-(defun hyai--current-offset-head ()
-  "Return cons of the first token and indent offset in the current line."
+(defun hyai--current-offset-head (&optional n)
+  "Return cons of the indent offset and the head in the current line.
+
+Head is either symbol or string.
+If it is a symbol, the value is 'comment or 'string which means
+beginning of the current line is in nestable comment or multiline string.
+Otherwise, the value is the first token of the current line.
+
+If N is supplied, go to N lines relative to the current line."
   (save-excursion
-    (forward-line 0)
+    (forward-line (or n 0))
     (skip-syntax-forward " ")
-    (if (eobp)
-        (cons (current-column) "")
-      (let* ((c (char-after))
-             (cc (current-column))
-             (head (cl-case (char-syntax c)
-                     (?w (hyai--grab-syntax-forward "w"))
-                     (?_ (hyai--grab-syntax-forward "_"))
-                     (?\( (if (looking-at-p "{-") "{-" (string c)))
-                     (?\) (string c))
-                     (?. (if (looking-at-p "-}") "-}"
-                           (hyai--grab-syntax-forward ".")))
-                     (t ""))))
-        (cons cc head)))))
+    (cons
+     (current-column)
+     (let ((ppss (syntax-ppss))
+           (c (char-after)))
+       (cond
+        ((hyai--in-comment-p ppss)
+         (if (looking-at-p "-}")
+             "-}"
+           'comment))
+
+        ((hyai--in-multiline-string-p ppss)
+         'string)
+
+        ((eobp) "")
+
+        (t
+         (cl-case (char-syntax c)
+           (?w (hyai--grab-syntax-forward "w"))
+           (?_ (hyai--grab-syntax-forward "_"))
+           (?\( (if (looking-at-p "{-") "{-" (string c)))
+           (?\) (string c))
+           (?. (if (looking-at-p "--")
+                   "--"
+                 (hyai--grab-syntax-forward ".")))
+           (t ""))))))))
 
 (defun hyai--search-token-backward (symbols words)
   "Search token specified in SYMBOLS or WORDS backward."
