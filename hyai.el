@@ -4,7 +4,7 @@
 
 ;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
 ;; URL:       https://github.com/iquiw/hyai
-;; Version:   1.3.0
+;; Version:   1.3.1
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -192,7 +192,7 @@ HEAD is the first token in the current line."
     (cl-case (char-syntax (char-before))
       (?w (pcase (hyai--grab-syntax-backward "w")
             (`"do"
-             (list (+ (current-indentation) hyai-basic-offset)))
+             (list (+ (hyai--search-base-offset) hyai-basic-offset)))
             (`"where"
              (if (hyai--botp)
                  (list (+ (current-column) hyai-where-offset))
@@ -211,8 +211,7 @@ HEAD is the first token in the current line."
                             (hyai--skip-space-backward)
                             (not (equal (hyai--grab-syntax-backward ".") "="))))
                       offset
-                    (list (or (hyai--search-let)
-                              (current-indentation)) offset))
+                    (list (hyai--search-base-offset) offset))
                   hyai-basic-offset))))
             ((or `"then" `"else")
              (if (hyai--botp)
@@ -223,8 +222,7 @@ HEAD is the first token in the current line."
 
       (?. (pcase (hyai--grab-syntax-backward ".")
             (`"="
-             (or (hyai--offsetnize (hyai--search-let) hyai-basic-offset)
-                 (list (+ (current-indentation) hyai-basic-offset))))
+             (list (+ (hyai--search-base-offset) hyai-basic-offset)))
             (`"->"
              (let ((off1 (hyai--search-equal-line))
                    (off2 (current-indentation)))
@@ -427,25 +425,6 @@ If N is supplied, go to N lines relative to the current line."
              'stop))))
     (cons offs last-token)))
 
-(defun hyai--search-let ()
-  "Search \"let\" token backward in the current line.
-Return offset after \"let\" or nil. "
-  (let (result prev)
-    (hyai--process-syntax-backward
-     (lambda (syn _c)
-       (cl-case syn
-         (?\s (setq prev (current-column))
-              (skip-syntax-backward " ")
-              'next)
-         (?w (let ((s (hyai--grab-syntax-backward "w")))
-               (if (string= s "let")
-                   (progn
-                     (setq result (or prev (current-column)))
-                     'stop)
-                 'next)))
-         (?> 'stop))))
-    result))
-
 (defun hyai--search-vertical (limit &optional after-blank)
   "Search vertical bar backward until LIMIT.
 If AFTER-BLANK is non-nil, include the last space position in the result."
@@ -527,6 +506,26 @@ ORIGIN is a charcter at the original position."
              (skip-syntax-backward " ")
              'next))))
     result))
+
+(defun hyai--search-base-offset ()
+  "Search position where the indent is based on."
+  (let (result cc)
+    (hyai--process-syntax-backward
+     (lambda (syn _c)
+       (cl-case syn
+         (?\s (setq result (current-column))
+              nil)
+         ((?w ?.)
+          (setq cc (current-column))
+          (pcase (hyai--grab-syntax-backward (string syn))
+            ((or `"let" `",")
+             (unless result
+               (setq result cc))
+             'stop)
+            (t (setq result nil)
+               'next)))
+         ((?\( ?>) 'stop))))
+    (or result 0)))
 
 (defun hyai--skip-space-backward ()
   "Skip whitespaces backward across lines."

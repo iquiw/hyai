@@ -135,6 +135,36 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(8)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = [ do
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(15)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foo = ( do
+                print bar
+                print baz
+          , do
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(12)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foobar = let baz = do
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(17)"
+
   Scenario: After where
     Given the buffer is empty
     When I insert:
