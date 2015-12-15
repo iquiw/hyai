@@ -55,6 +55,9 @@ If INVERSE is non-nil, rotation is performed in the reverse order."
 
 (defun hyai--indent (offset head &optional inverse)
   "Return next indent of the current line according to the current context.
+OFFSET is indent offset of the current line.
+HEAD is the first token in the current line or some special symbol,
+one of 'comment or 'string.
 If INVERSE is non-nil, previous indent is returned."
   (let ((ppss (syntax-ppss))
         (command (if inverse
