@@ -192,7 +192,7 @@ HEAD is the first token in the current line."
     (cl-case (char-syntax (char-before))
       (?w (pcase (hyai--grab-syntax-backward "w")
             (`"do"
-             (list (+ (hyai--search-base-offset) hyai-basic-offset)))
+             (list (+ (hyai--find-base-offset) hyai-basic-offset)))
             (`"where"
              (if (hyai--botp)
                  (list (+ (current-column) hyai-where-offset))
@@ -211,7 +211,7 @@ HEAD is the first token in the current line."
                             (hyai--skip-space-backward)
                             (not (equal (hyai--grab-syntax-backward ".") "="))))
                       offset
-                    (list (hyai--search-base-offset) offset))
+                    (list (hyai--find-base-offset) offset))
                   hyai-basic-offset))))
             ((or `"then" `"else")
              (if (hyai--botp)
@@ -222,9 +222,9 @@ HEAD is the first token in the current line."
 
       (?. (pcase (hyai--grab-syntax-backward ".")
             (`"="
-             (list (+ (hyai--search-base-offset) hyai-basic-offset)))
+             (list (+ (hyai--find-base-offset) hyai-basic-offset)))
             (`"->"
-             (let ((off1 (hyai--search-equal-line))
+             (let ((off1 (hyai--find-equal))
                    (off2 (current-indentation)))
                (if off1
                    (list (+ off2 hyai-basic-offset) off1)
@@ -364,10 +364,6 @@ If N is supplied, go to N lines relative to the current line."
     (hyai--process-syntax-backward
      (lambda (syn _c)
        (cl-case syn
-         (?> (if (/= (char-syntax (char-after)) ?\s)
-                 'stop
-               (backward-char)
-               'next))
          (?w (cond
               ((null words)
                (skip-syntax-backward "w")
@@ -383,7 +379,11 @@ If N is supplied, go to N lines relative to the current line."
               ((member (hyai--grab-syntax-backward ".") symbols)
                (setq result (current-column))
                'stop)
-              (t 'next))))))
+              (t 'next)))
+         (?> (if (/= (char-syntax (char-after)) ?\s)
+                 'stop
+               (backward-char)
+               'next)))))
     result))
 
 (defun hyai--possible-offsets ()
@@ -461,20 +461,20 @@ Return the first non-space position after it."
      limit)
     (cl-remove-duplicates result)))
 
-(defun hyai--search-equal-line ()
-  "Search equal backward and return the first non-space position after it."
+(defun hyai--find-equal ()
+  "Find the first non-space position after equal in the current line."
   (let (result)
     (hyai--process-syntax-backward
      (lambda (syn _c)
        (cl-case syn
-         (?> (setq result nil)
-             'stop)
          (?\s (setq result (current-column))
               (skip-syntax-backward " ")
               'next)
          (?. (if (string= (hyai--grab-syntax-backward ".") "=")
                  'stop
-               'next)))))
+               'next))
+         (?> (setq result nil)
+             'stop))))
     result))
 
 (defun hyai--search-comma-bracket (origin)
@@ -507,8 +507,8 @@ ORIGIN is a charcter at the original position."
              'next))))
     result))
 
-(defun hyai--search-base-offset ()
-  "Search position where the indent is based on."
+(defun hyai--find-base-offset ()
+  "Find position in the current line where the indent is based on."
   (let (result cc)
     (hyai--process-syntax-backward
      (lambda (syn _c)
