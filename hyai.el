@@ -622,10 +622,6 @@ Context is \"case\", \"where\" or the token that starts from the BOL."
   "Return non-nil if the current point is in a comment using PPSS."
   (nth 4 ppss))
 
-(defun hyai--in-nestable-comment-p (ppss)
-  "Return non-nil if the current point is in a nestable comment using PPSS."
-  (numberp (hyai--in-comment-p ppss)))
-
 (defun hyai--goto-comment-start (&optional ppss)
   "Goto the point where the comment is started usinng PPSS.
 If PPSS is not supplied, `syntax-ppss' is called internally."
