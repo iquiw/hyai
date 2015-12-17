@@ -147,6 +147,15 @@ Feature: hyai indent
     Given the buffer is empty
     When I insert:
     """
+    foobar = (do
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(14)"
+
+    Given the buffer is empty
+    When I insert:
+    """
     foo = ( do
                 print bar
                 print baz
@@ -155,6 +164,17 @@ Feature: hyai indent
     """
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(12)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    foo :: IO ()
+    foo = case () of
+        _    | True -> do
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(15)"
 
     Given the buffer is empty
     When I insert:

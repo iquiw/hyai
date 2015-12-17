@@ -4,7 +4,7 @@
 
 ;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
 ;; URL:       https://github.com/iquiw/hyai
-;; Version:   1.3.1
+;; Version:   1.3.2
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -521,13 +521,16 @@ ORIGIN is a charcter at the original position."
          ((?w ?.)
           (setq cc (current-column))
           (pcase (hyai--grab-syntax-backward (string syn))
-            ((or `"let" `",")
+            ((or `"let" `"," `"|")
              (unless result
                (setq result cc))
              'stop)
             (t (setq result nil)
                'next)))
-         ((?\( ?>) 'stop))))
+         (?\(
+          (setq result (or result (current-column)))
+          'stop)
+         (?> 'stop))))
     (or result 0)))
 
 (defun hyai--skip-space-backward ()
