@@ -847,6 +847,16 @@ Feature: hyai indent
     Given the buffer is empty
     When I insert:
     """
+    
+    f = foobar
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4 0)"
+
+    Given the buffer is empty
+    When I insert:
+    """
     person = Person
         { firstName = "John"
 

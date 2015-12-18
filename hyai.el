@@ -4,7 +4,7 @@
 
 ;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
 ;; URL:       https://github.com/iquiw/hyai
-;; Version:   1.3.2
+;; Version:   1.3.3
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -423,6 +423,7 @@ If N is supplied, go to N lines relative to the current line."
               (push (if (= (char-syntax (char-after)) ?\s) prev curr) offs)
               'stop)
          (?> (when (and prev offs
+                        (looking-at "^[[:space:]]")
                         (not (member last-token '("->"))))
                (push prev offs))
              'stop))))
