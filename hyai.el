@@ -4,7 +4,7 @@
 
 ;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
 ;; URL:       https://github.com/iquiw/hyai
-;; Version:   1.3.3
+;; Version:   1.3.4
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -145,9 +145,11 @@ HEAD is the first token in the current line."
     (`"("
      (let (offset)
        (save-excursion
-         (when (member (hyai--search-context) '("import" "module"))
+         (cond
+          ((member (hyai--grab-token) '("," "(")) nil) ; fallback
+          ((member (hyai--search-context) '("import" "module"))
            (setq offset (current-column))
-           (list (+ offset hyai-basic-offset))))))
+           (list (+ offset hyai-basic-offset)))))))
 
     (`"{"
      (list (+ (hyai--previous-offset) hyai-basic-offset)))
@@ -190,70 +192,64 @@ HEAD is the first token in the current line."
 
 (defun hyai--indent-candidates-from-previous ()
   "Return list of indent candidates according to the last token in previous line."
-  (if (bobp)
-      '(0)
-    (cl-case (char-syntax (char-before))
-      (?w (pcase (hyai--grab-syntax-backward "w")
-            (`"do"
-             (list (+ (hyai--find-base-offset) hyai-basic-offset)))
-            (`"where"
-             (if (hyai--botp)
-                 (list (+ (current-column) hyai-where-offset))
-               (or (hyai--offsetnize
-                    (hyai--search-token-backward nil '("where"))
-                    hyai-basic-offset)
-                   (if (looking-at-p "module")
-                       (list (current-indentation))
-                     (list (+ (current-indentation) hyai-basic-offset))))))
-            (`"of"
-             (let ((offset (hyai--search-token-backward nil '("case"))))
-               (when offset
-                 (hyai--offsetnize
-                  (if (or (= offset (current-indentation))
-                          (progn
-                            (hyai--skip-space-backward)
-                            (not (equal (hyai--grab-syntax-backward ".") "="))))
-                      offset
-                    (list (hyai--find-base-offset) offset))
-                  hyai-basic-offset))))
-            ((or `"then" `"else")
-             (if (hyai--botp)
-                 (list (+ (current-column) hyai-basic-offset))
-               (hyai--offsetnize
-                (hyai--search-token-backward nil '("if"))
-                hyai-basic-offset)))))
+  (pcase (hyai--grab-token)
+    (`"do"
+     (list (+ (hyai--find-base-offset) hyai-basic-offset)))
+    (`"where"
+     (if (hyai--botp)
+         (list (+ (current-column) hyai-where-offset))
+       (or (hyai--offsetnize
+            (hyai--search-token-backward nil '("where"))
+            hyai-basic-offset)
+           (if (looking-at-p "module")
+               (list (current-indentation))
+             (list (+ (current-indentation) hyai-basic-offset))))))
+    (`"of"
+     (let ((offset (hyai--search-token-backward nil '("case"))))
+       (when offset
+         (hyai--offsetnize
+          (if (or (= offset (current-indentation))
+                  (progn
+                    (hyai--skip-space-backward)
+                    (not (equal (hyai--grab-syntax-backward ".") "="))))
+              offset
+            (list (hyai--find-base-offset) offset))
+          hyai-basic-offset))))
+    ((or `"then" `"else")
+     (if (hyai--botp)
+         (list (+ (current-column) hyai-basic-offset))
+       (hyai--offsetnize
+        (hyai--search-token-backward nil '("if"))
+        hyai-basic-offset)))
 
-      (?. (pcase (hyai--grab-syntax-backward ".")
-            (`"="
-             (list (+ (hyai--find-base-offset) hyai-basic-offset)))
-            (`"->"
-             (let ((off1 (hyai--find-equal))
-                   (off2 (current-indentation)))
-               (if off1
-                   (list (+ off2 hyai-basic-offset) off1)
-                 (list off2 (+ off2 hyai-basic-offset)))))
-            (","
-             (list (or (and (hyai--search-comma-bracket ?,)
-                            (progn
-                              (forward-char)
-                              (skip-syntax-forward " ")
-                              (if (eolp)
-                                  (hyai--next-offset)
-                                (current-column))))
-                       (hyai--previous-offset))))))
+    (`"="
+     (list (+ (hyai--find-base-offset) hyai-basic-offset)))
+    (`"->"
+     (let ((off1 (hyai--find-equal))
+           (off2 (current-indentation)))
+       (if off1
+           (list (+ off2 hyai-basic-offset) off1)
+         (list off2 (+ off2 hyai-basic-offset)))))
+    (`","
+     (list (or (and (hyai--search-comma-bracket ?,)
+                    (progn
+                      (forward-char)
+                      (skip-syntax-forward " ")
+                      (if (eolp)
+                          (hyai--next-offset)
+                        (current-column))))
+               (hyai--previous-offset))))
 
-      (?\( (cl-case (char-before)
-             (?\( (list (+ (current-column) 1)))
-             ((?\{ ?\[)
-              (let ((cc (current-column))
-                    (offset (hyai--previous-offset)))
-                (if (= offset (- cc 1))
-                    (list (+ offset 2))
-                  (list (+ offset hyai-basic-offset)))))))
+    (`"(" (list (+ (current-column) 1)))
+    ((or `"{" `"[")
+     (let ((cc (current-column))
+           (offset (hyai--previous-offset)))
+       (if (= offset (- cc 1))
+           (list (+ offset 2))
+         (list (+ offset hyai-basic-offset)))))
 
-      (?\) (cl-case (char-before)
-             (?\) (when (equal (hyai--search-context) "import")
-                    '(0))))))))
+    (`")" (when (equal (hyai--search-context) "import")
+            '(0)))))
 
 (defun hyai--indent-candidates-from-backward (head)
   "Return list of indent candidates according to HEAD and backward tokens."
@@ -631,6 +627,15 @@ Context is \"case\", \"where\" or the token that starts from the BOL."
 If PPSS is not supplied, `syntax-ppss' is called internally."
   (let ((p (nth 8 (or ppss (syntax-ppss)))))
     (when p (goto-char p))))
+
+(defun hyai--grab-token ()
+  "Grab one token before the current point."
+  (let* ((c (char-before))
+         (syn (and c (char-syntax c))))
+    (cond
+     ((not syn) nil)
+     ((member syn '(?\( ?\))) (string c))
+     (t (hyai--grab-syntax-backward (string syn))))))
 
 (defun hyai--grab-syntax-forward (syntax)
   "Skip SYNTAX forward and return substring from the current point to it."
