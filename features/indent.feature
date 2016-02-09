@@ -449,6 +449,24 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(9 0)"
 
+    Given the buffer is empty
+    When I insert:
+    """
+    import Control.Applicative (
+    (<$>)
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(29)"
+
+    Given the buffer is empty
+    When I insert:
+    """
+    import Data.Monoid ( mempty,
+    (<>)
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(21)"
+
   Scenario: Before )
     Given the buffer is empty
     When I insert:
