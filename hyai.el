@@ -146,7 +146,7 @@ HEAD is the first token in the current line."
      (let (offset)
        (save-excursion
          (cond
-          ((member (hyai--grab-token) '("," "(")) nil) ; fallback
+          ((member (hyai--grab-token) '("," "(")) nil) ; fall through
           ((member (hyai--search-context) '("import" "module"))
            (setq offset (current-column))
            (list (+ offset hyai-basic-offset)))))))
