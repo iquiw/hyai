@@ -55,10 +55,10 @@ License
 Licensed under the GPL 3+ license.
 
 .. _Style Guide: https://github.com/tibbe/haskell-style-guide
-.. _MELPA: http://melpa.org/
+.. _MELPA: https://melpa.org/
 .. |travis| image:: https://travis-ci.org/iquiw/hyai.svg?branch=master
             :target: https://travis-ci.org/iquiw/hyai
 .. |coveralls| image:: https://coveralls.io/repos/iquiw/hyai/badge.svg?branch=master&service=github
                :target: https://coveralls.io/github/iquiw/hyai?branch=master
-.. |melpa| image:: http://melpa.org/packages/hyai-badge.svg
-           :target: http://melpa.org/#/hyai
+.. |melpa| image:: https://melpa.org/packages/hyai-badge.svg
+           :target: https://melpa.org/#/hyai
