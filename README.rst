@@ -12,9 +12,9 @@ Installation
 
 Setup from MELPA_
 -----------------
-1. Install from `MELPA`_::
+1. Install from `MELPA`_
 
-     M-x package-install RET hyai RET
+   | :kbd:`M-x package-install RET hyai RET`
 
 2. Add ``hyai-mode`` to ``haskell-mode-hook``
 
