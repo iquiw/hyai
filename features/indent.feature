@@ -823,6 +823,18 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(7)"
 
+  Scenario: After -> line
+    Given the buffer is empty
+    When I insert:
+    """
+    foo args =
+        case args of
+            [] -> return ()
+    
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(8 14 0 4)"
+
   Scenario: After =
     Given the buffer is empty
     When I insert:
