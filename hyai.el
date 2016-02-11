@@ -4,7 +4,7 @@
 
 ;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
 ;; URL:       https://github.com/iquiw/hyai
-;; Version:   1.3.4
+;; Version:   1.3.5
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -253,7 +253,7 @@ HEAD is the first token in the current line."
 
 (defun hyai--indent-candidates-from-backward (head)
   "Return list of indent candidates according to HEAD and backward tokens."
-  (pcase-let* ((`(,offs1 . ,token) (hyai--possible-offsets))
+  (pcase-let* ((`(,offs1 ,token ,col) (hyai--possible-offsets))
                (offs2)
                (offset (current-indentation))
                (min-offset (or (car offs1) offset)))
@@ -263,11 +263,17 @@ HEAD is the first token in the current line."
      ((member token '("(" "[" "{" "," "then"))
       (or (cdr offs1)
           (list min-offset (+ min-offset hyai-basic-offset))))
+
      (t
-      (when (equal token "else")
+      (cond
+       ((equal token "else")
         (setq offs1 (append offs1 (list (+ min-offset hyai-basic-offset))))
         (hyai--search-token-backward nil '("if"))
         (setq offset (current-column)))
+
+       ((equal token "->")
+        (unless (= offset col)
+          (push offset offs1))))
 
       (when (> offset 0)
         (setq offs2 (hyai--indent-candidates-rest offset)))
@@ -386,8 +392,8 @@ If N is supplied, go to N lines relative to the current line."
     result))
 
 (defun hyai--possible-offsets ()
-  "Return cons of list of possible indent offsets and last token."
-  (let (offs prev curr last-token)
+  "Return list of possible indent offsets, last token and its column."
+  (let (offs prev curr last-token last-col)
     (hyai--process-syntax-backward
      (lambda (syn c)
        (cl-case syn
@@ -396,6 +402,7 @@ If N is supplied, go to N lines relative to the current line."
               'next)
          (?w (setq curr (current-column))
              (setq last-token (hyai--grab-syntax-backward "w"))
+             (setq last-col (current-column))
              (cond
               ((member last-token '("let" "then" "else"))
                (push (or prev curr) offs)
@@ -406,6 +413,7 @@ If N is supplied, go to N lines relative to the current line."
               (t 'next)))
          (?. (setq curr (current-column))
              (setq last-token (hyai--grab-syntax-backward "."))
+             (setq last-col (current-column))
              (cond
               ((member last-token '("=" "->" "<-" "::"))
                (push (or prev curr) offs)
@@ -416,6 +424,7 @@ If N is supplied, go to N lines relative to the current line."
               (t 'next)))
          (?\( (setq curr (current-column))
               (setq last-token (string c))
+              (setq last-col (current-column))
               (push (if (= (char-syntax (char-after)) ?\s) prev curr) offs)
               'stop)
          (?> (when (and prev offs
@@ -423,7 +432,7 @@ If N is supplied, go to N lines relative to the current line."
                         (not (member last-token '("->"))))
                (push prev offs))
              'stop))))
-    (cons offs last-token)))
+    (list offs last-token last-col)))
 
 (defun hyai--search-vertical (limit &optional after-blank)
   "Search vertical bar backward until LIMIT.
