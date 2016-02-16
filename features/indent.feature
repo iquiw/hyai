@@ -864,6 +864,16 @@ Feature: hyai indent
     And I call hyai-indent-candidates at the current point
     Then indent candidates are "(15)"
 
+  Scenario: Before =
+    Given the buffer is empty
+    When I insert:
+    """
+    data Foo
+    = Bar String
+    """
+    And I call hyai-indent-candidates at the current point
+    Then indent candidates are "(4)"
+
   Scenario: After = line
     Given the buffer is empty
     When I insert:

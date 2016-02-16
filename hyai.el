@@ -1,10 +1,10 @@
 ;;; hyai.el --- Haskell Yet Another Indentation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2015 by Iku Iwasa
+;; Copyright (C) 2014-2016 by Iku Iwasa
 
 ;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
 ;; URL:       https://github.com/iquiw/hyai
-;; Version:   1.3.5
+;; Version:   1.3.6
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -151,7 +151,7 @@ HEAD is the first token in the current line."
            (setq offset (current-column))
            (list (+ offset hyai-basic-offset)))))))
 
-    (`"{"
+    ((or `"{" `"=")
      (list (+ (hyai--previous-offset) hyai-basic-offset)))
 
     (`")"
