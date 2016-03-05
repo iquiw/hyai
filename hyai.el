@@ -531,7 +531,7 @@ ORIGIN is a charcter at the original position."
              (unless result
                (setq result cc))
              'stop)
-            (t (setq result nil)
+            (_ (setq result nil)
                'next)))
          (?\(
           (setq result (or result (current-column)))
