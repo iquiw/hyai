@@ -572,7 +572,7 @@ Process is stopped at the optional LIMIT position."
              (comm-type (nth 4 ppss)))
         (cond
          (comm-type (hyai--goto-comment-start ppss))
-         ((and (= c ?\}) (looking-back "-}"))
+         ((and (= c ?\}) (looking-back "-}" limit))
           (backward-char)
           (hyai--goto-comment-start ppss))
          (t
