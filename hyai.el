@@ -33,8 +33,8 @@
 
 (require 'cl-lib)
 
-(defconst hyai-basic-offset 4)
-(defconst hyai-where-offset 2)
+(defcustom hyai-basic-offset 4 "Basic offset")
+(defcustom hyai-where-offset 2 "Where offset")
 
 (defun hyai-indent-line (&optional inverse)
   "Indent the current line according to the current context.
