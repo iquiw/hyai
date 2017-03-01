@@ -1,10 +1,10 @@
 ;;; hyai.el --- Haskell Yet Another Indentation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2016 by Iku Iwasa
+;; Copyright (C) 2014-2017 by Iku Iwasa
 
 ;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
 ;; URL:       https://github.com/iquiw/hyai
-;; Version:   1.3.6
+;; Version:   1.4.0
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -33,8 +33,16 @@
 
 (require 'cl-lib)
 
-(defcustom hyai-basic-offset 4 "Basic offset")
-(defcustom hyai-where-offset 2 "Where offset")
+(defgroup hyai nil
+  "Haskell Yet Another Indentation"
+  :group 'haskell)
+
+(defcustom hyai-basic-offset 4
+  "Basic offset used in most places."
+  :type 'integer)
+(defcustom hyai-where-offset 2
+  "Offset used around \"where\"."
+  :type 'integer)
 
 (defun hyai-indent-line (&optional inverse)
   "Indent the current line according to the current context.

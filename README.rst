@@ -7,6 +7,10 @@ Overview
 Hyai is an indentation minor mode for Haskell, written from scratch.
 It supports only one style that basically follows Johan Tibell's `Style Guide`_.
 
+Offset values (``hyai-basic-offset`` and ``hyai-where-offset``) can be customized,
+but only the default values are tested by unit tests.
+So the customized values may not work properly.
+
 Installation
 ============
 
