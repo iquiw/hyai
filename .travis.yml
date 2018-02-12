@@ -7,8 +7,8 @@ matrix:
     - env: EMACS=emacs24
       addons:
         apt:
-          sources: [ { sourceline: 'ppa:cassou/emacs' } ]
-          packages: [ emacs24, emacs24-el ]
+          sources: [ { sourceline: 'ppa:andreas-h/emacs' } ]
+          packages: [ emacs24 ]
     - env: EMACS=emacs25
       addons:
         apt:
