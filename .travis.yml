@@ -14,6 +14,11 @@ matrix:
         apt:
           sources: [ { sourceline: 'ppa:kelleyk/emacs' } ]
           packages: [ emacs25 ]
+    - env: EMACS=emacs26
+      addons:
+        apt:
+          sources: [ { sourceline: 'ppa:kelleyk/emacs' } ]
+          packages: [ emacs26 ]
 
 before_install:
   - curl -fsSL https://raw.githubusercontent.com/cask/cask/master/go | python
